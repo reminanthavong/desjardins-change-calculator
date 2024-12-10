@@ -283,11 +283,11 @@
             // Calculate submission deadline based on the change type
             let submissionNextDeadline;
             if (changeType === 'Minor') {
-                submissionDeadline = calculateForwardsDeadline(changeDate, 5);
+                submissionNextDeadline = calculateForwardsDeadline(changeDate, 5);
             } else if (changeType === 'Significant') {
-                submissionDeadline = calculateForwardsDeadline(changeDate, 8);
+                submissionNextDeadline = calculateForwardsDeadline(changeDate, 8);
             } else if (changeType === 'Major') {
-                submissionDeadline = calculateForwardsDeadline(changeDate, 13);
+                submissionNextDeadline = calculateForwardsDeadline(changeDate, 13);
             }    
 
 const resultElement = document.getElementById('result');
