@@ -162,6 +162,25 @@
             return date;
         };
 
+        // Helper function to calculate a backward deadline based on business days
+        const calculateForwardsDeadline = (startDate, businessDays) => {
+            const date = new Date(startDate);
+            let remainingDays = businessDays;
+
+            // Subtract business days
+            while (remainingDays > 0) {
+                date.setDate(date.getDate() + 1); // Move to previous day
+                if (!isWeekend(date) && !isHoliday(date)) {
+                    remainingDays--;
+                }
+            }
+
+            // Set to 4:00 PM on the final business day
+            date.setHours(16, 0, 0, 0);
+
+            return date;
+        };          
+
         // Format time for output (e.g., 4:00 PM)
         const formatTime = (date) => {
             const hours = date.getHours();
@@ -261,6 +280,16 @@
                 submissionDeadline = calculateBackwardsDeadline(changeDate, 13);
             }
 
+            // Calculate submission deadline based on the change type
+            let submissionNextDeadline;
+            if (changeType === 'Minor') {
+                submissionDeadline = calculateForwardsDeadline(changeDate, 5);
+            } else if (changeType === 'Significant') {
+                submissionDeadline = calculateForwardsDeadline(changeDate, 8);
+            } else if (changeType === 'Major') {
+                submissionDeadline = calculateForwardsDeadline(changeDate, 13);
+            }    
+
 const resultElement = document.getElementById('result');
 
 // Get the user's selected date and time
@@ -282,8 +311,10 @@ let deadlineMessage = "";
 if (deadlineDate < currentDate) {
     deadlineMessage += `<p>Deadline to submit ticket for a <b>${changeType}</b> change was: ${submissionDeadline.toLocaleDateString()}</p>`;
     deadlineMessage += `<p style="color:red;">The submission deadline has passed, please chose another date and time.</p>`;
+    deadlineMessage += `<p>The next date for a <b>${changeType}</b> change is: ${submissionNextDeadline.toLocaleDateString()}</p>`;
     deadlineMessage += `<p>Date limite pour soumettre un ticket pour un <b>${changeType}</b> changement était: ${submissionDeadline.toLocaleDateString()}</p>`;
     deadlineMessage += `<p style="color:red;">La date limite de soumission est dépassée, veuillez choisir une autre date et heure.</p>`;
+    deadlineMessage += `<p>La prochaine date pour un <b>${changeType}</b> changement est: ${submissionNextDeadline.toLocaleDateString()}</p>`;
 } else {
     // Only add the deadlines if the deadline hasn't passed
     deadlineMessage += `<p>You still have time to submit your change and will need to complete those steps below.</p>`;
