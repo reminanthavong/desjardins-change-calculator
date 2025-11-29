@@ -198,14 +198,12 @@
         const calculateForwardsDeadline = (startDate, businessDays) =>
             calculateBusinessDeadline(startDate, businessDays, 1);
 
-        // Anchor for Minor:
-        // Each window "X 17:00 → next day 16:00" shares the same X 17:00 anchor.
-        // Windows:
-        //   Fri 17:00 – Mon 16:00  → Fri 17:00
-        //   Mon 17:00 – Tue 16:00  → Mon 17:00
-        //   Tue 17:00 – Wed 16:00  → Tue 17:00
-        //   Wed 17:00 – Thu 16:00  → Wed 17:00
-        //   Thu 17:00 – Fri 16:00  → Thu 17:00
+        // Anchor for Minor with inclusive hour ranges:
+        //  Fri 17:00 – Mon 16:00  → Friday 17:00
+        //  Mon 17:00 – Tue 16:00  → Monday 17:00
+        //  Tue 17:00 – Wed 16:00  → Tuesday 17:00
+        //  Wed 17:00 – Thu 16:00  → Wednesday 17:00
+        //  Thu 17:00 – Fri 16:00  → Thursday 17:00
         const getMinorAnchorDate = (changeDate) => {
             const d = new Date(changeDate);
             const day = d.getDay();   // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat[web:76]
@@ -218,65 +216,54 @@
                 anchor.setHours(17, 0, 0, 0);
             };
 
-            // 1) Fri 17:00 – Mon 16:00  → Friday 17:00
-            if (day === 5 && hour >= 17) {      // Friday >= 17:00
-                setToWeekdayAt17(5);
-                return anchor;
-            }
-            if (day === 6) {                    // Saturday
-                setToWeekdayAt17(5);           // previous Friday
-                return anchor;
-            }
-            if (day === 0) {                    // Sunday
-                setToWeekdayAt17(5);           // previous Friday
-                return anchor;
-            }
-            if (day === 1 && hour < 16) {       // Monday < 16:00
-                setToWeekdayAt17(5);           // previous Friday
+            // 1) Fri 17:00–23:59, Sat any, Sun any, Mon 00:00–16:00 → Friday 17:00
+            if (
+                (day === 5 && hour >= 17) ||   // Fri 17–23
+                day === 6 ||                   // Sat
+                day === 0 ||                   // Sun
+                (day === 1 && hour <= 16)      // Mon 0–16 (inclusive)
+            ) {
+                setToWeekdayAt17(5);           // anchor = Friday 17:00
                 return anchor;
             }
 
-            // 2) Mon 17:00 – Tue 16:00 → Monday 17:00
-            if (day === 1 && hour >= 17) {      // Monday >= 17:00
-                setToWeekdayAt17(1);
-                return anchor;
-            }
-            if (day === 2 && hour < 16) {       // Tuesday < 16:00
-                setToWeekdayAt17(1);           // previous Monday
-                return anchor;
-            }
-
-            // 3) Tue 17:00 – Wed 16:00 → Tuesday 17:00
-            if (day === 2 && hour >= 17) {      // Tuesday >= 17:00
-                setToWeekdayAt17(2);
-                return anchor;
-            }
-            if (day === 3 && hour < 16) {       // Wednesday < 16:00
-                setToWeekdayAt17(2);           // previous Tuesday
+            // 2) Mon 17:00–23:59, Tue 00:00–16:00 → Monday 17:00
+            if (
+                (day === 1 && hour >= 17) ||   // Mon 17–23
+                (day === 2 && hour <= 16)      // Tue 0–16
+            ) {
+                setToWeekdayAt17(1);           // anchor = Monday 17:00
                 return anchor;
             }
 
-            // 4) Wed 17:00 – Thu 16:00 → Wednesday 17:00
-            if (day === 3 && hour >= 17) {      // Wednesday >= 17:00
-                setToWeekdayAt17(3);
-                return anchor;
-            }
-            if (day === 4 && hour < 16) {       // Thursday < 16:00
-                setToWeekdayAt17(3);           // previous Wednesday
-                return anchor;
-            }
-
-            // 5) Thu 17:00 – Fri 16:00 → Thursday 17:00
-            if (day === 4 && hour >= 17) {      // Thursday >= 17:00
-                setToWeekdayAt17(4);
-                return anchor;
-            }
-            if (day === 5 && hour < 16) {       // Friday < 16:00
-                setToWeekdayAt17(4);           // previous Thursday
+            // 3) Tue 17:00–23:59, Wed 00:00–16:00 → Tuesday 17:00
+            if (
+                (day === 2 && hour >= 17) ||   // Tue 17–23
+                (day === 3 && hour <= 16)      // Wed 0–16
+            ) {
+                setToWeekdayAt17(2);           // anchor = Tuesday 17:00
                 return anchor;
             }
 
-            // Outside all windows: use actual change date/time
+            // 4) Wed 17:00–23:59, Thu 00:00–16:00 → Wednesday 17:00
+            if (
+                (day === 3 && hour >= 17) ||   // Wed 17–23
+                (day === 4 && hour <= 16)      // Thu 0–16
+            ) {
+                setToWeekdayAt17(3);           // anchor = Wednesday 17:00
+                return anchor;
+            }
+
+            // 5) Thu 17:00–23:59, Fri 00:00–16:00 → Thursday 17:00
+            if (
+                (day === 4 && hour >= 17) ||   // Thu 17–23
+                (day === 5 && hour <= 16)      // Fri 0–16
+            ) {
+                setToWeekdayAt17(4);           // anchor = Thursday 17:00
+                return anchor;
+            }
+
+            // Outside all these windows, use actual change date/time
             return d;
         };
 
