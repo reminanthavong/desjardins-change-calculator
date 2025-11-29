@@ -1,5 +1,9 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<style>
+    <meta charset="UTF-8" />
+    <title>Desjardins Change Deadline Calculator</title>
+    <style>
         /* General Reset */
         body {
             font-family: Arial, sans-serif;
@@ -9,10 +13,17 @@
             color: #333;
             line-height: 1.6;
         }
+
         h1, h3 {
             text-align: center;
             color: #2c3e50;
         }
+
+        .page-title {
+            margin: 20px auto;
+            max-width: 900px;
+        }
+
         form {
             max-width: 600px;
             margin: 20px auto;
@@ -21,19 +32,25 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+
         label {
             display: block;
             margin-bottom: 10px;
             font-weight: bold;
         }
-        input, select, button {
+
+        input,
+        select,
+        button {
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 1rem;
+            box-sizing: border-box;
         }
+
         button {
             background-color: #3498db;
             color: white;
@@ -41,9 +58,11 @@
             cursor: pointer;
             font-weight: bold;
         }
+
         button:hover {
             background-color: #2980b9;
         }
+
         #result {
             max-width: 600px;
             margin: 20px auto;
@@ -52,10 +71,12 @@
             border-radius: 10px;
             border: 1px solid #3498db;
         }
+
         p {
             font-size: 1rem;
             margin: 10px 0;
         }
+
         .deadline-item {
             margin-bottom: 15px;
             padding: 10px;
@@ -63,6 +84,11 @@
             border-left: 4px solid #3498db;
             border-radius: 5px;
         }
+
+        .text-warning {
+            color: red;
+        }
+
         footer {
             text-align: center;
             margin-top: 20px;
@@ -75,264 +101,209 @@
 </head>
 <body>
 
-<body>
-   <h1 style="text-align:center; color:#2c3e50; font-family:Arial, sans-serif;">Desjardins Change Deadline Calculator / Calculateur de Délais de Changement Desjardins</h1>
-<form onsubmit="calculateDeadline(event)" style="max-width:600px; margin:20px auto; padding:20px; background:#fff; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); font-family:Arial, sans-serif;">
-    <label for="change_date" style="font-weight:bold; margin-bottom:10px; display:block;">Please choose a date and time / Veuillez choisir une date et une heure:</label>
-    <input type="date" id="change_date" name="change_date" required style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #ccc; border-radius:5px;">
-    <select id="change_time" name="change_time" style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #ccc; border-radius:5px;">
-        <option value="00:00">00:00</option>
-        <option value="01:00">01:00</option>
-        <option value="02:00">02:00</option>
-        <option value="03:00">03:00</option>
-        <option value="04:00">04:00</option>
-        <option value="05:00">05:00</option>
-        <option value="06:00">06:00</option>
-        <option value="07:00">07:00</option>
-        <option value="08:00">08:00</option>
-        <option value="09:00">09:00</option>
-        <option value="10:00">10:00</option>
-        <option value="11:00">11:00</option>
-        <option value="12:00">12:00</option>
-        <option value="13:00">13:00</option>
-        <option value="14:00">14:00</option>
-        <option value="15:00">15:00</option>
-        <option value="16:00">16:00</option>
-        <option value="17:00">17:00</option>
-        <option value="18:00">18:00</option>
-        <option value="19:00">19:00</option>
-        <option value="20:00">20:00</option>
-        <option value="21:00">21:00</option>
-        <option value="22:00">22:00</option>
-        <option value="23:00">23:00</option>
-    </select>
-    <label for="change_type" style="font-weight:bold; margin-bottom:10px; display:block;">Type of Change / Type de Changement:</label>
-    <select id="change_type" name="change_type" required style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #ccc; border-radius:5px;">
-        <option value="Minor">Minor/Mineur</option>
-        <option value="Significant">Significant/Significatif</option>
-        <option value="Major">Major/Majeur</option>
-    </select>
-    <button type="submit" style="width:100%; padding:10px; background-color:#3498db; color:white; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Calculate / Calculer</button>
-</form>
-<div id="result" style="max-width:600px; margin:20px auto; padding:20px; background:#eaf2f8; border-radius:10px; border:1px solid #3498db; font-family:Arial, sans-serif;"></div>
+    <h1 class="page-title">
+        Desjardins Change Deadline Calculator / Calculateur de Délais de Changement Desjardins
+    </h1>
 
-   <footer>
-        <p>Please do not edit this page / S'il vous plait ne pas modifier cette page </p>
+    <form onsubmit="calculateDeadline(event)">
+        <label for="change_date">
+            Please choose a date and time / Veuillez choisir une date et une heure:
+        </label>
+        <input type="date" id="change_date" name="change_date" required />
 
-<p>
-<b>Beta version</b>
+        <select id="change_time" name="change_time">
+            <option value="00:00">00:00</option>
+            <option value="01:00">01:00</option>
+            <option value="02:00">02:00</option>
+            <option value="03:00">03:00</option>
+            <option value="04:00">04:00</option>
+            <option value="05:00">05:00</option>
+            <option value="06:00">06:00</option>
+            <option value="07:00">07:00</option>
+            <option value="08:00">08:00</option>
+            <option value="09:00">09:00</option>
+            <option value="10:00">10:00</option>
+            <option value="11:00">11:00</option>
+            <option value="12:00">12:00</option>
+            <option value="13:00">13:00</option>
+            <option value="14:00">14:00</option>
+            <option value="15:00">15:00</option>
+            <option value="16:00">16:00</option>
+            <option value="17:00">17:00</option>
+            <option value="18:00">18:00</option>
+            <option value="19:00">19:00</option>
+            <option value="20:00">20:00</option>
+            <option value="21:00">21:00</option>
+            <option value="22:00">22:00</option>
+            <option value="23:00">23:00</option>
+        </select>
 
+        <label for="change_type">
+            Type of Change / Type de Changement:
+        </label>
+        <select id="change_type" name="change_type" required>
+            <option value="Minor">Minor / Mineur</option>
+            <option value="Significant">Significant / Significatif</option>
+            <option value="Major">Major / Majeur</option>
+        </select>
 
-</p>
+        <button type="submit">
+            Calculate / Calculer
+        </button>
+    </form>
+
+    <div id="result"></div>
+
+    <footer>
+        <p>Please do not edit this page / S'il vous plaît ne pas modifier cette page</p>
+        <p><b>Beta version</b></p>
     </footer>
 
-  <script>
+    <script>
         // List of Canadian holidays
         const holidays = [
             '2024-01-01', '2024-04-05', '2024-05-20', '2024-06-24',
             '2024-07-01', '2024-09-02', '2024-09-30', '2024-10-14',
-            '2024-11-11', '2024-12-25', '2024-12-26', '2025-01-01', '2025-02-17', 
-            '2025-04-18', '2025-05-19', '2025-06-24',
+            '2024-11-11', '2024-12-25', '2024-12-26',
+            '2025-01-01', '2025-02-17', '2025-04-18', '2025-05-19', '2025-06-24',
             '2025-07-01', '2025-08-04', '2025-09-01', '2025-09-30',
             '2025-10-13', '2025-11-11', '2025-12-25', '2025-12-26'
         ].map(date => new Date(date).toDateString());
 
-        // Check if a date is a holiday
         const isHoliday = date => holidays.includes(date.toDateString());
-
-        // Check if a date is a weekend
         const isWeekend = date => [0, 6].includes(date.getDay());
 
-        // Helper function to calculate a backward deadline based on business days
-        const calculateBackwardsDeadline = (startDate, businessDays) => {
+        const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
             const date = new Date(startDate);
             let remainingDays = businessDays;
 
-            // Subtract business days
             while (remainingDays > 0) {
-                date.setDate(date.getDate() - 1); // Move to previous day
+                date.setDate(date.getDate() + direction);
                 if (!isWeekend(date) && !isHoliday(date)) {
                     remainingDays--;
                 }
             }
 
-            // Set to 4:00 PM on the final business day
             date.setHours(16, 0, 0, 0);
-
             return date;
         };
 
-        // Helper function to calculate a backward deadline based on business days
-        const calculateForwardsDeadline = (startDate, businessDays) => {
-            const date = new Date(startDate);
-            let remainingDays = businessDays;
+        const calculateBackwardsDeadline = (startDate, businessDays) =>
+            calculateBusinessDeadline(startDate, businessDays, -1);
 
-            // Subtract business days
-            while (remainingDays > 0) {
-                date.setDate(date.getDate() + 1); // Move to previous day
-                if (!isWeekend(date) && !isHoliday(date)) {
-                    remainingDays--;
-                }
-            }
+        const calculateForwardsDeadline = (startDate, businessDays) =>
+            calculateBusinessDeadline(startDate, businessDays, 1);
 
-            // Set to 4:00 PM on the final business day
-            date.setHours(16, 0, 0, 0);
-
-            return date;
-        };          
-
-        // Format time for output (e.g., 4:00 PM)
-        const formatTime = (date) => {
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            return `${hours % 12}:${minutes < 10 ? '0' + minutes : minutes} ${ampm}`;
-        };
-
-        // Generate deadlines based on change type
-        const generateDeadlines = (changeDate, changeType) => {
-            let deadlines = '';
-            if (changeType === 'Minor') {
-                deadlines = generateMinorDeadlines(changeDate);
-            } else if (changeType === 'Significant') {
-                deadlines = generateSignificantDeadlines(changeDate);
-            } else if (changeType === 'Major') {
-                deadlines = generateMajorDeadlines(changeDate);
-            }
-            return deadlines;
-        };
-
-        // Generate Minor deadlines with the correct 24-hour logic
-        const generateMinorDeadlines = (changeDate) => {
-            return `
-                <h3>Deadlines for Minor Change</h3>
-                ${generateDeadlineItem(changeDate, 5, 'DDR deposited, Risk Assessment completed, Service Now ticket')}
-                ${generateDeadlineItem(changeDate, 4, 'Maximo ticket to GDC and MOP (before 2pm)')}
-                ${generateDeadlineItem(changeDate, 3, 'Validation done by GDC Bell (before 2pm)')}
-                <h3>Délais pour un changement Mineur</h3>
-                ${generateDeadlineItem(changeDate, 5, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
-                ${generateDeadlineItem(changeDate, 4, 'Billet Maximo soumis à la GDC Bell et MOP (avant 2pm)')}
-                ${generateDeadlineItem(changeDate, 3, 'Validation à la GDC Bell (avant 2pm)')}
-            `;
-        };
-
-        const generateSignificantDeadlines = (changeDate) => {
-            return `
-                <h3>Deadlines for Significant Change</h3>
-                ${generateDeadlineItem(changeDate, 8, 'DDR deposited, Risk Assessment completed, Service Now ticket')}
-                ${generateDeadlineItem(changeDate, 7, 'Maximo ticket to GDC (before 2pm), MOP (INPRG before 2pm)')}
-                ${generateDeadlineItem(changeDate, 6, 'Validation done by GDC (before 2pm)')}
-                ${generateDeadlineItem(changeDate, 5, 'Service Now to HDC (before noon)')}
-                ${generateDeadlineItem(changeDate, 4, 'MOP done (before 2pm)')}
-                ${generateDeadlineItem(changeDate, 2, 'CAB Presentation (11am), MOP Validation completed (before 11am)')}
-                ${generateDeadlineItem(changeDate, 1, 'Client Presentation (9am), Receives VP Approval')}
-                <h3>Délais pour un changement Significatif</h3>
-                ${generateDeadlineItem(changeDate, 8, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
-                ${generateDeadlineItem(changeDate, 7, 'Billet Maximo soumis à la GDC Bell (avant 2pm), MOP (INPRG avant 2pm)')}
-                ${generateDeadlineItem(changeDate, 6, 'Validation à la GDC Bell (avant 2pm)')}
-                ${generateDeadlineItem(changeDate, 5, 'Service Now to HDC (avant 12pm)')}
-                ${generateDeadlineItem(changeDate, 4, 'MOP complété (avant 2pm)')}
-                ${generateDeadlineItem(changeDate, 2, 'Présentation au CAB (11am), MOP Validation (avant 11pm)')}
-                ${generateDeadlineItem(changeDate, 1, 'Présentation au Client (9am), Recevoir approbation des VP')}
-            `;
-        };
-
-        const generateMajorDeadlines = (changeDate) => {
-            return `
-                <h3>Deadlines for Major Change</h3>
-                ${generateDeadlineItem(changeDate, 13, 'DDR deposited, Risk Assessment, Service Now ticket')}
-                ${generateDeadlineItem(changeDate, 12, 'Maximo ticket to GDC (by 2pm), MOP (INPRG by 2pm)')}
-                ${generateDeadlineItem(changeDate, 11, 'Validation by GDC (by 2pm)')}
-                ${generateDeadlineItem(changeDate, 10, 'Service Now to HDC (by noon)')}
-                ${generateDeadlineItem(changeDate, 4, 'MOP done (by 2pm)')}
-                ${generateDeadlineItem(changeDate, 2, 'CAB Presentation (11am), MOP Validation')}
-                ${generateDeadlineItem(changeDate, 1, 'Client Presentation (9am), Executive Approval (2pm)')}
-                <h3>Délais pour un changement Majeure</h3>
-                ${generateDeadlineItem(changeDate, 13, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
-                ${generateDeadlineItem(changeDate, 12, 'Billet Maximo soumis à la GDC Bell (avant 2pm), MOP (INPRG avant 2pm)')}
-                ${generateDeadlineItem(changeDate, 11, 'Validation à la GDC Bell (avant 2pm)')}
-                ${generateDeadlineItem(changeDate, 10, 'Service Now to HDC (avant 12pm)')}
-                ${generateDeadlineItem(changeDate, 4, 'MOP complété (avant 2pm)')}
-                ${generateDeadlineItem(changeDate, 2, 'Présentation au CAB (11am), MOP Validation (avant 11pm)')}
-                ${generateDeadlineItem(changeDate, 1, 'Présentation au Client (9am), Recevoir approbation des VP')}
-            `;
-        };
-
-        // Helper function to generate a single deadline item
         const generateDeadlineItem = (changeDate, businessDays, task) => {
             const deadline = calculateBackwardsDeadline(changeDate, businessDays);
-            return `<p>Within ${businessDays} business days (by ${deadline.toLocaleDateString()}): ${task}</p>`;
+            return `<p class="deadline-item">Within ${businessDays} business days (by ${deadline.toLocaleDateString()}): ${task}</p>`;
         };
 
-        // Handle form submission
+        const generateMinorDeadlines = (changeDate) => `
+            <h3>Deadlines for Minor Change</h3>
+            ${generateDeadlineItem(changeDate, 5, 'DDR deposited, Risk Assessment completed, Service Now ticket')}
+            ${generateDeadlineItem(changeDate, 4, 'Maximo ticket to GDC and MOP (before 2pm)')}
+            ${generateDeadlineItem(changeDate, 3, 'Validation done by GDC Bell (before 2pm)')}
+            <h3>Délais pour un changement mineur</h3>
+            ${generateDeadlineItem(changeDate, 5, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
+            ${generateDeadlineItem(changeDate, 4, 'Billet Maximo soumis à la GDC Bell et MOP (avant 14 h)')}
+            ${generateDeadlineItem(changeDate, 3, 'Validation à la GDC Bell (avant 14 h)')}
+        `;
+
+        const generateSignificantDeadlines = (changeDate) => `
+            <h3>Deadlines for Significant Change</h3>
+            ${generateDeadlineItem(changeDate, 8, 'DDR deposited, Risk Assessment completed, Service Now ticket')}
+            ${generateDeadlineItem(changeDate, 7, 'Maximo ticket to GDC (before 2pm), MOP (INPRG before 2pm)')}
+            ${generateDeadlineItem(changeDate, 6, 'Validation done by GDC (before 2pm)')}
+            ${generateDeadlineItem(changeDate, 5, 'Service Now to HDC (before noon)')}
+            ${generateDeadlineItem(changeDate, 4, 'MOP done (before 2pm)')}
+            ${generateDeadlineItem(changeDate, 2, 'CAB Presentation (11am), MOP Validation completed (before 11am)')}
+            ${generateDeadlineItem(changeDate, 1, 'Client Presentation (9am), Receives VP Approval')}
+            <h3>Délais pour un changement significatif</h3>
+            ${generateDeadlineItem(changeDate, 8, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
+            ${generateDeadlineItem(changeDate, 7, 'Billet Maximo soumis à la GDC Bell (avant 14 h), MOP (INPRG avant 14 h)')}
+            ${generateDeadlineItem(changeDate, 6, 'Validation à la GDC Bell (avant 14 h)')}
+            ${generateDeadlineItem(changeDate, 5, 'Service Now to HDC (avant 12 h)')}
+            ${generateDeadlineItem(changeDate, 4, 'MOP complété (avant 14 h)')}
+            ${generateDeadlineItem(changeDate, 2, 'Présentation au CAB (11 h), MOP Validation (avant 11 h)')}
+            ${generateDeadlineItem(changeDate, 1, 'Présentation au client (9 h), recevoir approbation des VP')}
+        `;
+
+        const generateMajorDeadlines = (changeDate) => `
+            <h3>Deadlines for Major Change</h3>
+            ${generateDeadlineItem(changeDate, 13, 'DDR deposited, Risk Assessment, Service Now ticket')}
+            ${generateDeadlineItem(changeDate, 12, 'Maximo ticket to GDC (by 2pm), MOP (INPRG by 2pm)')}
+            ${generateDeadlineItem(changeDate, 11, 'Validation by GDC (by 2pm)')}
+            ${generateDeadlineItem(changeDate, 10, 'Service Now to HDC (by noon)')}
+            ${generateDeadlineItem(changeDate, 4, 'MOP done (by 2pm)')}
+            ${generateDeadlineItem(changeDate, 2, 'CAB Presentation (11am), MOP Validation')}
+            ${generateDeadlineItem(changeDate, 1, 'Client Presentation (9am), Executive Approval (2pm)')}
+            <h3>Délais pour un changement majeur</h3>
+            ${generateDeadlineItem(changeDate, 13, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
+            ${generateDeadlineItem(changeDate, 12, 'Billet Maximo soumis à la GDC Bell (avant 14 h), MOP (INPRG avant 14 h)')}
+            ${generateDeadlineItem(changeDate, 11, 'Validation à la GDC Bell (avant 14 h)')}
+            ${generateDeadlineItem(changeDate, 10, 'Service Now to HDC (avant 12 h)')}
+            ${generateDeadlineItem(changeDate, 4, 'MOP complété (avant 14 h)')}
+            ${generateDeadlineItem(changeDate, 2, 'Présentation au CAB (11 h), MOP Validation (avant 11 h)')}
+            ${generateDeadlineItem(changeDate, 1, 'Présentation au client (9 h), recevoir approbation des VP')}
+        `;
+
+        const generateDeadlines = (changeDate, changeType) => {
+            if (changeType === 'Minor') return generateMinorDeadlines(changeDate);
+            if (changeType === 'Significant') return generateSignificantDeadlines(changeDate);
+            if (changeType === 'Major') return generateMajorDeadlines(changeDate);
+            return '';
+        };
+
         const calculateDeadline = (event) => {
             event.preventDefault();
-            let changeDate = new Date(`${document.getElementById('change_date').value}T${document.getElementById('change_time').value}`);
-            const changeType = document.getElementById('change_type').value;
 
-            // Calculate submission deadline based on the change type
-            let submissionDeadline;
-            if (changeType === 'Minor') {
-                submissionDeadline = calculateBackwardsDeadline(changeDate, 5);
-            } else if (changeType === 'Significant') {
-                submissionDeadline = calculateBackwardsDeadline(changeDate, 8);
-            } else if (changeType === 'Major') {
-                submissionDeadline = calculateBackwardsDeadline(changeDate, 13);
+            const dateValue = document.getElementById('change_date').value;
+            const timeValue = document.getElementById('change_time').value;
+            const changeType = document.getElementById('change_type').value;
+            const resultElement = document.getElementById('result');
+
+            if (!dateValue) {
+                resultElement.innerHTML = '<p class="text-warning">Please select a valid date.</p>';
+                return;
             }
 
-            // Calculate submission deadline based on the change type
-            let submissionNextDeadline;
-            if (changeType === 'Minor') {
-                submissionNextDeadline = calculateForwardsDeadline(changeDate, 5);
-            } else if (changeType === 'Significant') {
-                submissionNextDeadline = calculateForwardsDeadline(changeDate, 8);
-            } else if (changeType === 'Major') {
-                submissionNextDeadline = calculateForwardsDeadline(changeDate, 13);
-            }    
+            const changeDate = new Date(`${dateValue}T${timeValue}`);
+            const userDateTime = new Date(`${dateValue}T${timeValue}`);
 
-const resultElement = document.getElementById('result');
+            let submissionDays;
+            if (changeType === 'Minor') submissionDays = 5;
+            else if (changeType === 'Significant') submissionDays = 8;
+            else if (changeType === 'Major') submissionDays = 13;
 
-// Get the user's selected date and time
-const userDateTime = new Date(`${document.getElementById('change_date').value}T${document.getElementById('change_time').value}`);
+            const submissionDeadline = calculateBackwardsDeadline(changeDate, submissionDays);
+            const submissionNextDeadline = calculateForwardsDeadline(changeDate, submissionDays);
 
-// Get the current date (without time)
-const currentDate = new Date();
-currentDate.setHours(0, 0, 0, 0); // Set time to 00:00 to compare only the date
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
 
-// Compare the submission deadline with the current date
-const deadlineDate = new Date(submissionDeadline);
-deadlineDate.setHours(0, 0, 0, 0); // Set time to 00:00 to compare only the date
+            const deadlineDate = new Date(submissionDeadline);
+            deadlineDate.setHours(0, 0, 0, 0);
 
-// Show the user's selected date and time
-let resultMessage = `<p>You selected / Votre Selection: ${userDateTime.toLocaleDateString()} ${userDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>`;
+            let resultMessage = `<p>You selected / Votre sélection : ${userDateTime.toLocaleDateString()} ${userDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>`;
 
-// Check if the deadline has passed
-let deadlineMessage = "";
-if (deadlineDate < currentDate) {
-    deadlineMessage += `<p>Deadline to submit ticket for a <b>${changeType}</b> change was: ${submissionDeadline.toLocaleDateString()}</p>`;
-    deadlineMessage += `<p style="color:red;">The submission deadline has passed, please chose another date and time.</p>`;
-    deadlineMessage += `<p>The next date for a <b>${changeType}</b> change is: ${submissionNextDeadline.toLocaleDateString()}</p>`;
-    deadlineMessage += `<p>Date limite pour soumettre un ticket pour un <b>${changeType}</b> changement était: ${submissionDeadline.toLocaleDateString()}</p>`;
-    deadlineMessage += `<p style="color:red;">La date limite de soumission est dépassée, veuillez choisir une autre date et heure.</p>`;
-    deadlineMessage += `<p>La prochaine date pour un <b>${changeType}</b> changement est: ${submissionNextDeadline.toLocaleDateString()}</p>`;
-} else {
-    // Only add the deadlines if the deadline hasn't passed
-    deadlineMessage += `<p>You still have time to submit your change and will need to complete those steps below.</p>`;
-    deadlineMessage += `<p>Vous avez encore le temps de soumettre votre modification et devrez suivre les étapes ci-dessous.</p>`;
-    resultElement.innerHTML = resultMessage + deadlineMessage + `${generateDeadlines(changeDate, changeType)}`;
-    return;
-}
+            let deadlineMessage = '';
+            if (deadlineDate < currentDate) {
+                deadlineMessage += `<p>Deadline to submit ticket for a <b>${changeType}</b> change was: ${submissionDeadline.toLocaleDateString()}</p>`;
+                deadlineMessage += `<p class="text-warning">The submission deadline has passed, please choose another date and time.</p>`;
+                deadlineMessage += `<p>The next date for a <b>${changeType}</b> change is: ${submissionNextDeadline.toLocaleDateString()}</p>`;
+                deadlineMessage += `<p>Date limite pour soumettre un ticket pour un <b>${changeType}</b> changement était: ${submissionDeadline.toLocaleDateString()}</p>`;
+                deadlineMessage += `<p class="text-warning">La date limite de soumission est dépassée, veuillez choisir une autre date et heure.</p>`;
+                deadlineMessage += `<p>La prochaine date pour un <b>${changeType}</b> changement est: ${submissionNextDeadline.toLocaleDateString()}</p>`;
 
-// If the deadline has passed, only show the deadline message
-resultElement.innerHTML = resultMessage + deadlineMessage;
-
-
+                resultElement.innerHTML = resultMessage + deadlineMessage;
+            } else {
+                deadlineMessage += `<p>You still have time to submit your change and will need to complete the steps below.</p>`;
+                deadlineMessage += `<p>Vous avez encore le temps de soumettre votre modification et devrez suivre les étapes ci-dessous.</p>`;
+                resultElement.innerHTML = resultMessage + deadlineMessage + generateDeadlines(changeDate, changeType);
+            }
         };
     </script>
-
-
-
-
 
 </body>
 </html>
