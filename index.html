@@ -198,21 +198,47 @@
         const calculateForwardsDeadline = (startDate, businessDays) =>
             calculateBusinessDeadline(startDate, businessDays, 1);
 
-        const generateDeadlineItem = (changeDate, businessDays, task) => {
-            const deadline = calculateBackwardsDeadline(changeDate, businessDays);
-            return `<p class="deadline-item">Within ${businessDays} business days (by ${deadline.toLocaleDateString()}): ${task}</p>`;
+        // Helper for Minor to get N business days before
+        const getBusinessDateBefore = (changeDate, businessDays) => {
+            return calculateBackwardsDeadline(changeDate, businessDays);
         };
 
-        const generateMinorDeadlines = (changeDate) => `
-            <h3>Deadlines for Minor Change</h3>
-            ${generateDeadlineItem(changeDate, 5, 'DDR deposited, Risk Assessment completed, Service Now ticket')}
-            ${generateDeadlineItem(changeDate, 4, 'Maximo ticket to GDC and MOP (before 2pm)')}
-            ${generateDeadlineItem(changeDate, 3, 'Validation done by GDC Bell (before 2pm)')}
-            <h3>Délais pour un changement mineur</h3>
-            ${generateDeadlineItem(changeDate, 5, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
-            ${generateDeadlineItem(changeDate, 4, 'Billet Maximo soumis à la GDC Bell et MOP (avant 14 h)')}
-            ${generateDeadlineItem(changeDate, 3, 'Validation à la GDC Bell (avant 14 h)')}
-        `;
+        const generateMinorDeadlines = (changeDate) => {
+            // 5, 4, 3 business days BEFORE the change
+            const ddrDate        = getBusinessDateBefore(changeDate, 5);
+            const maximoDate     = getBusinessDateBefore(changeDate, 4);
+            const validationDate = getBusinessDateBefore(changeDate, 3);
+
+            return `
+                <h3>Deadlines for Minor Change</h3>
+                <p class="deadline-item">
+                    DDR deposited, Risk Assessment completed, Service Now ticket
+                    (by ${ddrDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Maximo ticket to GDC and MOP (before 2pm)
+                    (by ${maximoDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Validation done by GDC Bell (before 2pm)
+                    (by ${validationDate.toLocaleDateString()})
+                </p>
+
+                <h3>Délais pour un changement mineur</h3>
+                <p class="deadline-item">
+                    Dépôt de DDR, Risk Assessment complété, Billet Service Now
+                    (avant le ${ddrDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Billet Maximo soumis à la GDC Bell et MOP (avant 14 h)
+                    (avant le ${maximoDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Validation à la GDC Bell (avant 14 h)
+                    (avant le ${validationDate.toLocaleDateString()})
+                </p>
+            `;
+        };
 
         const generateSignificantDeadlines = (changeDate) => `
             <h3>Deadlines for Significant Change</h3>
@@ -251,6 +277,12 @@
             ${generateDeadlineItem(changeDate, 2, 'Présentation au CAB (11 h), MOP Validation (avant 11 h)')}
             ${generateDeadlineItem(changeDate, 1, 'Présentation au client (9 h), recevoir approbation des VP')}
         `;
+
+        // Generic deadline item used by Significant/Major
+        const generateDeadlineItem = (changeDate, businessDays, task) => {
+            const deadline = calculateBackwardsDeadline(changeDate, businessDays);
+            return `<p class="deadline-item">${task} (by ${deadline.toLocaleDateString()})</p>`;
+        };
 
         const generateDeadlines = (changeDate, changeType) => {
             if (changeType === 'Minor') return generateMinorDeadlines(changeDate);
