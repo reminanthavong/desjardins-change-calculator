@@ -198,41 +198,86 @@
         const calculateForwardsDeadline = (startDate, businessDays) =>
             calculateBusinessDeadline(startDate, businessDays, 1);
 
-        // ----- MINOR ANCHOR: Friday 17:00 -----
-        // Rule: any Minor change between Friday 17:00 and Monday 16:00
-        // uses the SAME anchor = that Friday at 17:00.
+        // Anchor for Minor:
+        // Each window "X 17:00 → next day 16:00" shares the same X 17:00 anchor.
+        // Windows:
+        //   Fri 17:00 – Mon 16:00  → Fri 17:00
+        //   Mon 17:00 – Tue 16:00  → Mon 17:00
+        //   Tue 17:00 – Wed 16:00  → Tue 17:00
+        //   Wed 17:00 – Thu 16:00  → Wed 17:00
+        //   Thu 17:00 – Fri 16:00  → Thu 17:00
         const getMinorAnchorDate = (changeDate) => {
             const d = new Date(changeDate);
             const day = d.getDay();   // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat[web:76]
             const hour = d.getHours();
+            const anchor = new Date(d);
 
-            // Find the "window Friday" for this change:
-            // - Fri 17:00..23:59 → same Friday
-            // - Sat / Sun / Mon up to 16:00 → previous Friday
-            let friday = new Date(d);
+            const setToWeekdayAt17 = (targetWeekday) => {
+                const diff = targetWeekday - day;
+                anchor.setDate(anchor.getDate() + diff);
+                anchor.setHours(17, 0, 0, 0);
+            };
 
-            if (day === 5 && hour >= 17) {
-                // in the window on Friday itself
-                friday.setHours(17, 0, 0, 0);
-            } else if (day === 6) {
-                // Saturday -> previous Friday
-                friday.setDate(friday.getDate() - 1);
-                friday.setHours(17, 0, 0, 0);
-            } else if (day === 0) {
-                // Sunday -> previous Friday
-                friday.setDate(friday.getDate() - 2);
-                friday.setHours(17, 0, 0, 0);
-            } else if (day === 1 && hour < 16) {
-                // Monday before 16:00 -> previous Friday
-                friday.setDate(friday.getDate() - 3);
-                friday.setHours(17, 0, 0, 0);
-            } else {
-                // Outside Fri‑17h..Mon‑16h window:
-                // use the actual change date/time as anchor
-                return d;
+            // 1) Fri 17:00 – Mon 16:00  → Friday 17:00
+            if (day === 5 && hour >= 17) {      // Friday >= 17:00
+                setToWeekdayAt17(5);
+                return anchor;
+            }
+            if (day === 6) {                    // Saturday
+                setToWeekdayAt17(5);           // previous Friday
+                return anchor;
+            }
+            if (day === 0) {                    // Sunday
+                setToWeekdayAt17(5);           // previous Friday
+                return anchor;
+            }
+            if (day === 1 && hour < 16) {       // Monday < 16:00
+                setToWeekdayAt17(5);           // previous Friday
+                return anchor;
             }
 
-            return friday;
+            // 2) Mon 17:00 – Tue 16:00 → Monday 17:00
+            if (day === 1 && hour >= 17) {      // Monday >= 17:00
+                setToWeekdayAt17(1);
+                return anchor;
+            }
+            if (day === 2 && hour < 16) {       // Tuesday < 16:00
+                setToWeekdayAt17(1);           // previous Monday
+                return anchor;
+            }
+
+            // 3) Tue 17:00 – Wed 16:00 → Tuesday 17:00
+            if (day === 2 && hour >= 17) {      // Tuesday >= 17:00
+                setToWeekdayAt17(2);
+                return anchor;
+            }
+            if (day === 3 && hour < 16) {       // Wednesday < 16:00
+                setToWeekdayAt17(2);           // previous Tuesday
+                return anchor;
+            }
+
+            // 4) Wed 17:00 – Thu 16:00 → Wednesday 17:00
+            if (day === 3 && hour >= 17) {      // Wednesday >= 17:00
+                setToWeekdayAt17(3);
+                return anchor;
+            }
+            if (day === 4 && hour < 16) {       // Thursday < 16:00
+                setToWeekdayAt17(3);           // previous Wednesday
+                return anchor;
+            }
+
+            // 5) Thu 17:00 – Fri 16:00 → Thursday 17:00
+            if (day === 4 && hour >= 17) {      // Thursday >= 17:00
+                setToWeekdayAt17(4);
+                return anchor;
+            }
+            if (day === 5 && hour < 16) {       // Friday < 16:00
+                setToWeekdayAt17(4);           // previous Thursday
+                return anchor;
+            }
+
+            // Outside all windows: use actual change date/time
+            return d;
         };
 
         // Generic item (Significant/Major)
@@ -241,7 +286,7 @@
             return `<p class="deadline-item">${task} (by ${deadline.toLocaleDateString()})</p>`;
         };
 
-        // Minor based on Friday‑17:00 anchor (DDR=5, Maximo=4, Validation=3 BEFORE anchor)
+        // Minor based on anchor (DDR=5, Maximo=4, Validation=3 BEFORE anchor)
         const generateMinorDeadlines = (changeDate) => {
             const anchor = getMinorAnchorDate(changeDate);
 
@@ -341,7 +386,7 @@
             const rawChangeDate = new Date(`${dateValue}T${timeValue}`);
             const userDateTime  = new Date(`${dateValue}T${timeValue}`);
 
-            // For Minor, use Friday‑17:00 anchor; others use raw
+            // For Minor, use anchor; others use raw
             let calcChangeDate = rawChangeDate;
             if (changeType === 'Minor') {
                 calcChangeDate = getMinorAnchorDate(rawChangeDate);
@@ -355,7 +400,6 @@
             const submissionDeadline     = calculateBackwardsDeadline(calcChangeDate, submissionDays);
             const submissionNextDeadline = calculateForwardsDeadline(calcChangeDate, submissionDays);
 
-            // Compare deadline vs TODAY[web:123]
             const currentDate = new Date();
             currentDate.setHours(0, 0, 0, 0);
 
