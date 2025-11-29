@@ -175,7 +175,7 @@
         ].map(date => new Date(date).toDateString());
 
         const isHoliday = date => holidays.includes(date.toDateString());
-        const isWeekend = date => [0, 6].includes(date.getDay());
+        const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6[web:76]
 
         const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
             const date = new Date(startDate);
@@ -198,16 +198,57 @@
         const calculateForwardsDeadline = (startDate, businessDays) =>
             calculateBusinessDeadline(startDate, businessDays, 1);
 
-        // Helper for Minor to get N business days before
-        const getBusinessDateBefore = (changeDate, businessDays) => {
-            return calculateBackwardsDeadline(changeDate, businessDays);
+        // For Minor: map any time between Friday 17:00 and Monday 16:00
+        // to a single Monday 16:00 anchor so they share the same deadlines.
+        const getMinorAnchorDate = (changeDate) => {
+            const d = new Date(changeDate);
+            const day = d.getDay(); // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat[web:76]
+            const hour = d.getHours();
+
+            // Saturday -> next Monday 16:00
+            if (day === 6) {
+                d.setDate(d.getDate() + 2);
+                d.setHours(16, 0, 0, 0);
+                return d;
+            }
+
+            // Sunday -> next Monday 16:00
+            if (day === 0) {
+                d.setDate(d.getDate() + 1);
+                d.setHours(16, 0, 0, 0);
+                return d;
+            }
+
+            // Friday after 17:00 -> Monday 16:00
+            if (day === 5 && hour >= 17) {
+                d.setDate(d.getDate() + 3);
+                d.setHours(16, 0, 0, 0);
+                return d;
+            }
+
+            // Monday before 16:00 -> same Monday 16:00
+            if (day === 1 && hour < 16) {
+                d.setHours(16, 0, 0, 0);
+                return d;
+            }
+
+            // All other times use the exact change date/time
+            return d;
         };
 
+        // Generic deadline item used by Significant/Major
+        const generateDeadlineItem = (changeDate, businessDays, task) => {
+            const deadline = calculateBackwardsDeadline(changeDate, businessDays);
+            return `<p class="deadline-item">${task} (by ${deadline.toLocaleDateString()})</p>`;
+        };
+
+        // Minor deadlines based on anchor (Friday 17h–Monday 16h share same Monday 16h anchor)
         const generateMinorDeadlines = (changeDate) => {
-            // 5, 4, 3 business days BEFORE the change
-            const ddrDate        = getBusinessDateBefore(changeDate, 5);
-            const maximoDate     = getBusinessDateBefore(changeDate, 4);
-            const validationDate = getBusinessDateBefore(changeDate, 3);
+            const anchor = getMinorAnchorDate(changeDate);
+
+            const ddrDate        = calculateBackwardsDeadline(anchor, 5); // DDR
+            const maximoDate     = calculateBackwardsDeadline(anchor, 4); // Maximo
+            const validationDate = calculateBackwardsDeadline(anchor, 3); // Validation
 
             return `
                 <h3>Deadlines for Minor Change</h3>
@@ -278,12 +319,6 @@
             ${generateDeadlineItem(changeDate, 1, 'Présentation au client (9 h), recevoir approbation des VP')}
         `;
 
-        // Generic deadline item used by Significant/Major
-        const generateDeadlineItem = (changeDate, businessDays, task) => {
-            const deadline = calculateBackwardsDeadline(changeDate, businessDays);
-            return `<p class="deadline-item">${task} (by ${deadline.toLocaleDateString()})</p>`;
-        };
-
         const generateDeadlines = (changeDate, changeType) => {
             if (changeType === 'Minor') return generateMinorDeadlines(changeDate);
             if (changeType === 'Significant') return generateSignificantDeadlines(changeDate);
@@ -304,16 +339,22 @@
                 return;
             }
 
-            const changeDate = new Date(`${dateValue}T${timeValue}`);
+            const rawChangeDate = new Date(`${dateValue}T${timeValue}`);
             const userDateTime = new Date(`${dateValue}T${timeValue}`);
+
+            // For Minor, use the anchor for calculations so Fri 17h–Mon 16h share deadlines
+            let calcChangeDate = rawChangeDate;
+            if (changeType === 'Minor') {
+                calcChangeDate = getMinorAnchorDate(rawChangeDate);
+            }
 
             let submissionDays;
             if (changeType === 'Minor') submissionDays = 5;
             else if (changeType === 'Significant') submissionDays = 8;
             else if (changeType === 'Major') submissionDays = 13;
 
-            const submissionDeadline = calculateBackwardsDeadline(changeDate, submissionDays);
-            const submissionNextDeadline = calculateForwardsDeadline(changeDate, submissionDays);
+            const submissionDeadline = calculateBackwardsDeadline(calcChangeDate, submissionDays);
+            const submissionNextDeadline = calculateForwardsDeadline(calcChangeDate, submissionDays);
 
             const currentDate = new Date();
             currentDate.setHours(0, 0, 0, 0);
@@ -336,7 +377,7 @@
             } else {
                 deadlineMessage += `<p>You still have time to submit your change and will need to complete the steps below.</p>`;
                 deadlineMessage += `<p>Vous avez encore le temps de soumettre votre modification et devrez suivre les étapes ci-dessous.</p>`;
-                resultElement.innerHTML = resultMessage + deadlineMessage + generateDeadlines(changeDate, changeType);
+                resultElement.innerHTML = resultMessage + deadlineMessage + generateDeadlines(calcChangeDate, changeType);
             }
         };
     </script>
