@@ -465,30 +465,31 @@
             `;
         };
 
-        // MAJOR DEADLINES (two windows, aligned with getMajorAnchor)
-        const generateMajorDeadlines = (changeDate) => {
-            const { anchor, window } = getMajorAnchor(changeDate);
+        // MAJOR DEADLINES (two windows, uses anchored date)
+        const generateMajorDeadlines = (anchoredChangeDate) => {
+            // anchoredChangeDate is already getMajorAnchor(...).anchor
+            const { window } = getMajorAnchor(anchoredChangeDate);
 
             let ddrDate, maximoDate, validationDate, snHdcDate, mopDoneDate, cabDate, clientDate;
 
             if (window === 'wednesday') {
-                // Wed 17h–Fri 16h window – extended pattern (adjust offsets if needed)
-                ddrDate        = calculateBackwardsDeadline(anchor, 16);
-                maximoDate     = calculateBackwardsDeadline(anchor, 15);
-                validationDate = calculateBackwardsDeadline(anchor, 14);
-                snHdcDate      = calculateBackwardsDeadline(anchor, 13);
-                mopDoneDate    = calculateBackwardsDeadline(anchor, 7);
-                cabDate        = calculateBackwardsDeadline(anchor, 2);
-                clientDate     = calculateBackwardsDeadline(anchor, 1);
+                // Wed 17h–Fri 16h window – extended pattern (adjust if needed)
+                ddrDate        = calculateBackwardsDeadline(anchoredChangeDate, 16);
+                maximoDate     = calculateBackwardsDeadline(anchoredChangeDate, 15);
+                validationDate = calculateBackwardsDeadline(anchoredChangeDate, 14);
+                snHdcDate      = calculateBackwardsDeadline(anchoredChangeDate, 13);
+                mopDoneDate    = calculateBackwardsDeadline(anchoredChangeDate, 7);
+                cabDate        = calculateBackwardsDeadline(anchoredChangeDate, 2);
+                clientDate     = calculateBackwardsDeadline(anchoredChangeDate, 1);
             } else {
                 // Default Major pattern (Fri 17h–Wed 16h and 'none')
-                ddrDate        = calculateBackwardsDeadline(anchor, 13);
-                maximoDate     = calculateBackwardsDeadline(anchor, 12);
-                validationDate = calculateBackwardsDeadline(anchor, 11);
-                snHdcDate      = calculateBackwardsDeadline(anchor, 10);
-                mopDoneDate    = calculateBackwardsDeadline(anchor, 4);
-                cabDate        = calculateBackwardsDeadline(anchor, 2);
-                clientDate     = calculateBackwardsDeadline(anchor, 1);
+                ddrDate        = calculateBackwardsDeadline(anchoredChangeDate, 13);
+                maximoDate     = calculateBackwardsDeadline(anchoredChangeDate, 12);
+                validationDate = calculateBackwardsDeadline(anchoredChangeDate, 11);
+                snHdcDate      = calculateBackwardsDeadline(anchoredChangeDate, 10);
+                mopDoneDate    = calculateBackwardsDeadline(anchoredChangeDate, 4);
+                cabDate        = calculateBackwardsDeadline(anchoredChangeDate, 2);
+                clientDate     = calculateBackwardsDeadline(anchoredChangeDate, 1);
             }
 
             return `
