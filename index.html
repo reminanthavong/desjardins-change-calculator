@@ -198,15 +198,11 @@
         const calculateForwardsDeadline = (startDate, businessDays) =>
             calculateBusinessDeadline(startDate, businessDays, 1);
 
-        // Anchor for Minor with inclusive hour ranges:
-        //  Fri 17:00 – Mon 16:00  → Friday 17:00
-        //  Mon 17:00 – Tue 16:00  → Monday 17:00
-        //  Tue 17:00 – Wed 16:00  → Tuesday 17:00
-        //  Wed 17:00 – Thu 16:00  → Wednesday 17:00
-        //  Thu 17:00 – Fri 16:00  → Thursday 17:00
+        // ----- MINOR ANCHOR (already working) -----
+        // Inclusive sliding windows Mon–Fri, each sharing a 17:00 anchor.
         const getMinorAnchorDate = (changeDate) => {
             const d = new Date(changeDate);
-            const day = d.getDay();   // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat[web:76]
+            const day = d.getDay();
             const hour = d.getHours();
             const anchor = new Date(d);
 
@@ -216,64 +212,90 @@
                 anchor.setHours(17, 0, 0, 0);
             };
 
-            // 1) Fri 17:00–23:59, Sat any, Sun any, Mon 00:00–16:00 → Friday 17:00
+            // Fri 17:00–Mon 16:00 → Fri 17:00
             if (
-                (day === 5 && hour >= 17) ||   // Fri 17–23
-                day === 6 ||                   // Sat
-                day === 0 ||                   // Sun
-                (day === 1 && hour <= 16)      // Mon 0–16 (inclusive)
+                (day === 5 && hour >= 17) ||
+                day === 6 ||
+                day === 0 ||
+                (day === 1 && hour <= 16)
             ) {
-                setToWeekdayAt17(5);           // anchor = Friday 17:00
+                setToWeekdayAt17(5);
                 return anchor;
             }
 
-            // 2) Mon 17:00–23:59, Tue 00:00–16:00 → Monday 17:00
+            // Mon 17:00–Tue 16:00 → Mon 17:00
             if (
-                (day === 1 && hour >= 17) ||   // Mon 17–23
-                (day === 2 && hour <= 16)      // Tue 0–16
+                (day === 1 && hour >= 17) ||
+                (day === 2 && hour <= 16)
             ) {
-                setToWeekdayAt17(1);           // anchor = Monday 17:00
+                setToWeekdayAt17(1);
                 return anchor;
             }
 
-            // 3) Tue 17:00–23:59, Wed 00:00–16:00 → Tuesday 17:00
+            // Tue 17:00–Wed 16:00 → Tue 17:00
             if (
-                (day === 2 && hour >= 17) ||   // Tue 17–23
-                (day === 3 && hour <= 16)      // Wed 0–16
+                (day === 2 && hour >= 17) ||
+                (day === 3 && hour <= 16)
             ) {
-                setToWeekdayAt17(2);           // anchor = Tuesday 17:00
+                setToWeekdayAt17(2);
                 return anchor;
             }
 
-            // 4) Wed 17:00–23:59, Thu 00:00–16:00 → Wednesday 17:00
+            // Wed 17:00–Thu 16:00 → Wed 17:00
             if (
-                (day === 3 && hour >= 17) ||   // Wed 17–23
-                (day === 4 && hour <= 16)      // Thu 0–16
+                (day === 3 && hour >= 17) ||
+                (day === 4 && hour <= 16)
             ) {
-                setToWeekdayAt17(3);           // anchor = Wednesday 17:00
+                setToWeekdayAt17(3);
                 return anchor;
             }
 
-            // 5) Thu 17:00–23:59, Fri 00:00–16:00 → Thursday 17:00
+            // Thu 17:00–Fri 16:00 → Thu 17:00
             if (
-                (day === 4 && hour >= 17) ||   // Thu 17–23
-                (day === 5 && hour <= 16)      // Fri 0–16
+                (day === 4 && hour >= 17) ||
+                (day === 5 && hour <= 16)
             ) {
-                setToWeekdayAt17(4);           // anchor = Thursday 17:00
+                setToWeekdayAt17(4);
                 return anchor;
             }
 
-            // Outside all these windows, use actual change date/time
             return d;
         };
 
-        // Generic item (Significant/Major)
+        // ----- SIGNIFICANT ANCHOR -----
+        // Any Significant change between Friday 17:00 and Wednesday 16:00 (inclusive)
+        // shares the same Friday 17:00 anchor.
+        const getSignificantAnchorDate = (changeDate) => {
+            const d = new Date(changeDate);
+            const day = d.getDay();   // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat[web:76]
+            const hour = d.getHours();[web:113]
+
+            const inWindow =
+                (day === 5 && hour >= 17) ||   // Fri 17–23
+                day === 6 ||                   // Sat
+                day === 0 ||                   // Sun
+                (day === 1) ||                 // Mon (all day)
+                (day === 2) ||                 // Tue (all day)
+                (day === 3 && hour <= 16);     // Wed 0–16 inclusive
+
+            if (!inWindow) {
+                return d; // outside the window, use actual date/time
+            }
+
+            const friday = new Date(d);
+            const diffToFriday = 5 - day;
+            friday.setDate(friday.getDate() + diffToFriday);
+            friday.setHours(17, 0, 0, 0);
+            return friday;
+        };
+
+        // Generic item (used only for Major now)
         const generateDeadlineItem = (changeDate, businessDays, task) => {
             const deadline = calculateBackwardsDeadline(changeDate, businessDays);
             return `<p class="deadline-item">${task} (by ${deadline.toLocaleDateString()})</p>`;
         };
 
-        // Minor based on anchor (DDR=5, Maximo=4, Validation=3 BEFORE anchor)
+        // ----- MINOR DEADLINES -----
         const generateMinorDeadlines = (changeDate) => {
             const anchor = getMinorAnchorDate(changeDate);
 
@@ -312,25 +334,83 @@
             `;
         };
 
-        const generateSignificantDeadlines = (changeDate) => `
-            <h3>Deadlines for Significant Change</h3>
-            ${generateDeadlineItem(changeDate, 8, 'DDR deposited, Risk Assessment completed, Service Now ticket')}
-            ${generateDeadlineItem(changeDate, 7, 'Maximo ticket to GDC (before 2pm), MOP (INPRG before 2pm)')}
-            ${generateDeadlineItem(changeDate, 6, 'Validation done by GDC (before 2pm)')}
-            ${generateDeadlineItem(changeDate, 5, 'Service Now to HDC (before noon)')}
-            ${generateDeadlineItem(changeDate, 4, 'MOP done (before 2pm)')}
-            ${generateDeadlineItem(changeDate, 2, 'CAB Presentation (11am), MOP Validation completed (before 11am)')}
-            ${generateDeadlineItem(changeDate, 1, 'Client Presentation (9am), Receives VP Approval')}
-            <h3>Délais pour un changement significatif</h3>
-            ${generateDeadlineItem(changeDate, 8, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
-            ${generateDeadlineItem(changeDate, 7, 'Billet Maximo soumis à la GDC Bell (avant 14 h), MOP (INPRG avant 14 h)')}
-            ${generateDeadlineItem(changeDate, 6, 'Validation à la GDC Bell (avant 14 h)')}
-            ${generateDeadlineItem(changeDate, 5, 'Service Now to HDC (avant 12 h)')}
-            ${generateDeadlineItem(changeDate, 4, 'MOP complété (avant 14 h)')}
-            ${generateDeadlineItem(changeDate, 2, 'Présentation au CAB (11 h), MOP Validation (avant 11 h)')}
-            ${generateDeadlineItem(changeDate, 1, 'Présentation au client (9 h), recevoir approbation des VP')}
-        `;
+        // ----- SIGNIFICANT DEADLINES (explicit offsets from Friday‑17h anchor) -----
+        const generateSignificantDeadlines = (changeDate) => {
+            const anchor = getSignificantAnchorDate(changeDate);
 
+            // Adjust these offsets if your Significant schedule changes.
+            const ddrDate        = calculateBackwardsDeadline(anchor, 8);
+            const maximoDate     = calculateBackwardsDeadline(anchor, 7);
+            const validationDate = calculateBackwardsDeadline(anchor, 6);
+            const snHdcDate      = calculateBackwardsDeadline(anchor, 5);
+            const mopDoneDate    = calculateBackwardsDeadline(anchor, 4);
+            const cabDate        = calculateBackwardsDeadline(anchor, 2);
+            const clientDate     = calculateBackwardsDeadline(anchor, 1);
+
+            return `
+                <h3>Deadlines for Significant Change</h3>
+                <p class="deadline-item">
+                    DDR deposited, Risk Assessment completed, Service Now ticket
+                    (by ${ddrDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Maximo ticket to GDC (before 2pm), MOP (INPRG before 2pm)
+                    (by ${maximoDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Validation done by GDC (before 2pm)
+                    (by ${validationDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Service Now to HDC (before noon)
+                    (by ${snHdcDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    MOP done (before 2pm)
+                    (by ${mopDoneDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    CAB Presentation (11am), MOP Validation completed (before 11am)
+                    (by ${cabDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Client Presentation (9am), Receives VP Approval
+                    (by ${clientDate.toLocaleDateString()})
+                </p>
+
+                <h3>Délais pour un changement significatif</h3>
+                <p class="deadline-item">
+                    Dépôt de DDR, Risk Assessment complété, Billet Service Now
+                    (by ${ddrDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Billet Maximo soumis à la GDC Bell (avant 14 h), MOP (INPRG avant 14 h)
+                    (by ${maximoDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Validation à la GDC Bell (avant 14 h)
+                    (by ${validationDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Service Now to HDC (avant 12 h)
+                    (by ${snHdcDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    MOP complété (avant 14 h)
+                    (by ${mopDoneDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Présentation au CAB (11 h), MOP Validation (avant 11 h)
+                    (by ${cabDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Présentation au client (9 h), recevoir approbation des VP
+                    (by ${clientDate.toLocaleDateString()})
+                </p>
+            `;
+        };
+
+        // ----- MAJOR DEADLINES (still using generic offsets) -----
         const generateMajorDeadlines = (changeDate) => `
             <h3>Deadlines for Major Change</h3>
             ${generateDeadlineItem(changeDate, 13, 'DDR deposited, Risk Assessment, Service Now ticket')}
@@ -373,10 +453,12 @@
             const rawChangeDate = new Date(`${dateValue}T${timeValue}`);
             const userDateTime  = new Date(`${dateValue}T${timeValue}`);
 
-            // For Minor, use anchor; others use raw
+            // Anchor handling
             let calcChangeDate = rawChangeDate;
             if (changeType === 'Minor') {
                 calcChangeDate = getMinorAnchorDate(rawChangeDate);
+            } else if (changeType === 'Significant') {
+                calcChangeDate = getSignificantAnchorDate(rawChangeDate);
             }
 
             let submissionDays;
