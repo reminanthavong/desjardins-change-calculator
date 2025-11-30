@@ -175,7 +175,7 @@
         ].map(date => new Date(date).toDateString());
 
         const isHoliday = date => holidays.includes(date.toDateString());
-        const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6[web:76]
+        const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6
 
         const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
             const date = new Date(startDate);
@@ -265,8 +265,9 @@
         // SIGNIFICANT ANCHOR: Friday 17:00 for Fri 17:00 – Wed 16:00 (inclusive)
         const getSignificantAnchorDate = (changeDate) => {
             const d = new Date(changeDate);
-            const day = d.getDay();   // 0=Sun..5=Fri..6=Sat[web:76]
-            const hour = d.getHours();[web:113]
+            const day = d.getDay();   // 0=Sun..5=Fri..6=Sat
+            const hour = d.getHours();
+
 
             const inWindow =
                 (day === 5 && hour >= 17) ||   // Fri 17–23
@@ -436,6 +437,7 @@
 
         const calculateDeadline = (event) => {
             event.preventDefault();
+			console.log('calculateDeadline called');
 
             const dateValue  = document.getElementById('change_date').value;
             const timeValue  = document.getElementById('change_time').value;
