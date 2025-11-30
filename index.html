@@ -175,7 +175,7 @@
         ].map(date => new Date(date).toDateString());
 
         const isHoliday = date => holidays.includes(date.toDateString());
-        const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6
+        const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6[web:76]
 
         const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
             const date = new Date(startDate);
@@ -262,33 +262,50 @@
             return d;
         };
 
-        // SIGNIFICANT ANCHOR: Friday 17:00 for Fri 17:00 – Wed 16:00 (inclusive)
+        // SIGNIFICANT ANCHOR:
+        //  - Fri 17:00 – Wed 16:00  → Friday 17:00
+        //  - Wed 17:00 – Fri 16:00  → Wednesday 17:00
         const getSignificantAnchorDate = (changeDate) => {
             const d = new Date(changeDate);
-            const day = d.getDay();   // 0=Sun..5=Fri..6=Sat
-            const hour = d.getHours();
+            const day = d.getDay();    // 0=Sun..5=Fri..6=Sat[web:76]
+            const hour = d.getHours(); // 0..23[web:113]
 
-
-            const inWindow =
+            // Window A: Fri 17:00–23:59, Sat, Sun, Mon (all), Tue (all), Wed 00:00–16:00
+            const inFridayWindow =
                 (day === 5 && hour >= 17) ||   // Fri 17–23
                 day === 6 ||                   // Sat
                 day === 0 ||                   // Sun
-                (day === 1) ||                 // Mon (all day)
-                (day === 2) ||                 // Tue (all day)
-                (day === 3 && hour <= 16);     // Wed 0–16 inclusive
+                day === 1 ||                   // Mon
+                day === 2 ||                   // Tue
+                (day === 3 && hour <= 16);     // Wed 0–16
 
-            if (!inWindow) {
-                return d;
+            if (inFridayWindow) {
+                const friday = new Date(d);
+                const diffToFriday = 5 - day;  // move to that week's Friday
+                friday.setDate(friday.getDate() + diffToFriday);
+                friday.setHours(17, 0, 0, 0);
+                return friday;
             }
 
-            const friday = new Date(d);
-            const diffToFriday = 5 - day;
-            friday.setDate(friday.getDate() + diffToFriday);
-            friday.setHours(17, 0, 0, 0);
-            return friday;
+            // Window B: Wed 17:00–23:59, Thu (all), Fri 00:00–16:00 → Wednesday 17:00
+            const inWednesdayWindow =
+                (day === 3 && hour >= 17) ||   // Wed 17–23
+                day === 4 ||                   // Thu
+                (day === 5 && hour <= 16);     // Fri 0–16
+
+            if (inWednesdayWindow) {
+                const weds = new Date(d);
+                const diffToWeds = 3 - day;
+                weds.setDate(weds.getDate() + diffToWeds);
+                weds.setHours(17, 0, 0, 0);
+                return weds;
+            }
+
+            // Any other time: use the actual change date/time
+            return d;
         };
 
-        // Generic item (still used for Major only)
+        // Generic item (used for Major only)
         const generateDeadlineItem = (changeDate, businessDays, task) => {
             const deadline = calculateBackwardsDeadline(changeDate, businessDays);
             return `<p class="deadline-item">${task} (by ${deadline.toLocaleDateString()})</p>`;
@@ -333,7 +350,7 @@
             `;
         };
 
-        // SIGNIFICANT DEADLINES from Friday‑17:00 anchor
+        // SIGNIFICANT DEADLINES from anchor
         const generateSignificantDeadlines = (changeDate) => {
             const anchor = getSignificantAnchorDate(changeDate);
 
@@ -437,7 +454,6 @@
 
         const calculateDeadline = (event) => {
             event.preventDefault();
-			console.log('calculateDeadline called');
 
             const dateValue  = document.getElementById('change_date').value;
             const timeValue  = document.getElementById('change_time').value;
