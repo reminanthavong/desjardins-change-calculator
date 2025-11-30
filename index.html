@@ -289,15 +289,15 @@
             return { anchor: d, window: 'none' };
         };
 
-        // MAJOR ANCHOR + WINDOW:
-        //  - 'friday': Fri 17–Wed 16 → Friday 17h
-        //  - 'wednesday': Wed 17–Fri 16 → Wednesday 17h
+        // MAJOR ANCHOR (two windows) – returns the anchor date only
+        //  - Fri 17:00 – Wed 16:00 → Friday 17:00
+        //  - Wed 17:00 – Fri 16:00 → Wednesday 17:00
         const getMajorAnchor = (changeDate) => {
             const d = new Date(changeDate);
             const day = d.getDay();    // 0=Sun..5=Fri..6=Sat[web:76]
             const hour = d.getHours(); // 0..23[web:113]
 
-            // Window A: Fri 17–23, Sat, Sun, Mon, Tue, Wed 0–16
+            // Window A: Fri 17–23, Sat, Sun, Mon, Tue, Wed 0–16 → Friday 17:00
             const inFridayWindow =
                 (day === 5 && hour >= 17) ||
                 day === 6 ||
@@ -308,13 +308,13 @@
 
             if (inFridayWindow) {
                 const friday = new Date(d);
-                const diffToFriday = 5 - day;  // move to that week's Friday
+                const diffToFriday = 5 - day;  // 5 = Friday
                 friday.setDate(friday.getDate() + diffToFriday);
                 friday.setHours(17, 0, 0, 0);
-                return { anchor: friday, window: 'friday' };
+                return friday;
             }
 
-            // Window B: Wed 17–23, Thu (all), Fri 0–16
+            // Window B: Wed 17–23, Thu (all), Fri 0–16 → Wednesday 17:00
             const inWednesdayWindow =
                 (day === 3 && hour >= 17) ||
                 day === 4 ||
@@ -322,14 +322,14 @@
 
             if (inWednesdayWindow) {
                 const weds = new Date(d);
-                const diffToWeds = 3 - day;    // move to that week's Wednesday
+                const diffToWeds = 3 - day;    // 3 = Wednesday
                 weds.setDate(weds.getDate() + diffToWeds);
                 weds.setHours(17, 0, 0, 0);
-                return { anchor: weds, window: 'wednesday' };
+                return weds;
             }
 
-            // Outside these windows: use actual datetime
-            return { anchor: d, window: 'none' };
+            // Outside windows: use actual datetime
+            return d;
         };
 
         const generateDeadlineItem = (changeDate, businessDays, task) => {
@@ -465,29 +465,38 @@
             `;
         };
 
-        // MAJOR DEADLINES (two windows, uses anchored date)
+        // MAJOR DEADLINES (two windows, using anchored date)
         const generateMajorDeadlines = (anchoredChangeDate) => {
-            // anchoredChangeDate is already getMajorAnchor(...).anchor
-            const { window } = getMajorAnchor(anchoredChangeDate);
+            // Determine which window the anchored date belongs to
+            const day = anchoredChangeDate.getDay();
+            const hour = anchoredChangeDate.getHours();
+
+            const isFridayWindow =
+                (day === 5 && hour === 17) ||   // Friday 17:00 anchor
+                (day === 6) ||                  // Saturday (if ever anchored this way)
+                (day === 0) ||                  // Sunday
+                (day === 1) ||                  // Monday
+                (day === 2) ||                  // Tuesday
+                (day === 3 && hour < 17);       // Wednesday before 17:00
 
             let ddrDate, maximoDate, validationDate, snHdcDate, mopDoneDate, cabDate, clientDate;
 
-            if (window === 'wednesday') {
-                // Wed 17h–Fri 16h window – extended pattern (adjust if needed)
-                ddrDate        = calculateBackwardsDeadline(anchoredChangeDate, 16);
-                maximoDate     = calculateBackwardsDeadline(anchoredChangeDate, 15);
-                validationDate = calculateBackwardsDeadline(anchoredChangeDate, 14);
-                snHdcDate      = calculateBackwardsDeadline(anchoredChangeDate, 13);
-                mopDoneDate    = calculateBackwardsDeadline(anchoredChangeDate, 7);
-                cabDate        = calculateBackwardsDeadline(anchoredChangeDate, 2);
-                clientDate     = calculateBackwardsDeadline(anchoredChangeDate, 1);
-            } else {
-                // Default Major pattern (Fri 17h–Wed 16h and 'none')
+            if (isFridayWindow) {
+                // Fri 17h–Wed 16h pattern
                 ddrDate        = calculateBackwardsDeadline(anchoredChangeDate, 13);
                 maximoDate     = calculateBackwardsDeadline(anchoredChangeDate, 12);
                 validationDate = calculateBackwardsDeadline(anchoredChangeDate, 11);
                 snHdcDate      = calculateBackwardsDeadline(anchoredChangeDate, 10);
                 mopDoneDate    = calculateBackwardsDeadline(anchoredChangeDate, 4);
+                cabDate        = calculateBackwardsDeadline(anchoredChangeDate, 2);
+                clientDate     = calculateBackwardsDeadline(anchoredChangeDate, 1);
+            } else {
+                // Wed 17h–Fri 16h window – extended pattern (adjust offsets as needed)
+                ddrDate        = calculateBackwardsDeadline(anchoredChangeDate, 16);
+                maximoDate     = calculateBackwardsDeadline(anchoredChangeDate, 15);
+                validationDate = calculateBackwardsDeadline(anchoredChangeDate, 14);
+                snHdcDate      = calculateBackwardsDeadline(anchoredChangeDate, 13);
+                mopDoneDate    = calculateBackwardsDeadline(anchoredChangeDate, 7);
                 cabDate        = calculateBackwardsDeadline(anchoredChangeDate, 2);
                 clientDate     = calculateBackwardsDeadline(anchoredChangeDate, 1);
             }
@@ -584,7 +593,7 @@
             } else if (changeType === 'Significant') {
                 calcChangeDate = getSignificantAnchor(rawChangeDate).anchor;
             } else if (changeType === 'Major') {
-                calcChangeDate = getMajorAnchor(rawChangeDate).anchor;
+                calcChangeDate = getMajorAnchor(rawChangeDate);
             }
 
             let submissionDays;
