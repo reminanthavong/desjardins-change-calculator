@@ -596,6 +596,8 @@
                 calcChangeDate = getMajorAnchor(rawChangeDate);
             }
 
+            console.log('Type:', changeType, 'Raw:', rawChangeDate.toString(), 'Anchor:', calcChangeDate.toString());
+
             let submissionDays;
             if (changeType === 'Minor') submissionDays = 5;
             else if (changeType === 'Significant') submissionDays = 8;
