@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <title>Desjardins Change Deadline Calculator</title>
     <style>
-        /* General Reset */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -14,17 +13,14 @@
             line-height: 1.7;
             font-size: 16px;
         }
-
         h1, h3 {
             text-align: center;
             color: #2c3e50;
         }
-
         .page-title {
             margin: 20px auto;
             max-width: 900px;
         }
-
         form {
             max-width: 600px;
             margin: 20px auto;
@@ -33,13 +29,11 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-
         label {
             display: block;
             margin-bottom: 10px;
             font-weight: 600;
         }
-
         input,
         select,
         button {
@@ -52,7 +46,6 @@
             box-sizing: border-box;
             color: #222;
         }
-
         button {
             background-color: #3498db;
             color: white;
@@ -60,11 +53,9 @@
             cursor: pointer;
             font-weight: bold;
         }
-
         button:hover {
             background-color: #2980b9;
         }
-
         #result {
             max-width: 600px;
             margin: 20px auto;
@@ -73,13 +64,11 @@
             border-radius: 10px;
             border: 1px solid #3498db;
         }
-
         p {
             font-size: 1rem;
             margin: 10px 0;
             font-weight: 500;
         }
-
         .deadline-item {
             margin-bottom: 15px;
             padding: 10px;
@@ -87,12 +76,10 @@
             border-left: 4px solid #3498db;
             border-radius: 5px;
         }
-
         .text-warning {
             color: #b30000;
             font-weight: 600;
         }
-
         footer {
             text-align: center;
             margin-top: 20px;
@@ -262,20 +249,20 @@
         };
 
         // SIGNIFICANT ANCHOR + WINDOW:
-        //  - Window 'friday': Fri 17:00 – Wed 16:00  → Friday 17:00
-        //  - Window 'wednesday': Wed 17:00 – Fri 16:00  → Wednesday 17:00
+        //  - 'friday': Fri 17–Wed 16 → Friday 17h
+        //  - 'wednesday': Wed 17–Fri 16 → Wednesday 17h
         const getSignificantAnchor = (changeDate) => {
             const d = new Date(changeDate);
             const day = d.getDay();    // 0=Sun..5=Fri..6=Sat[web:76]
-            const hour = d.getHours(); // 0..23[web:113]
+            const hour = d.getHours(); // 0..23[web:240]
 
             const inFridayWindow =
-                (day === 5 && hour >= 17) ||   // Fri 17–23
-                day === 6 ||                   // Sat
-                day === 0 ||                   // Sun
-                day === 1 ||                   // Mon
-                day === 2 ||                   // Tue
-                (day === 3 && hour <= 16);     // Wed 0–16
+                (day === 5 && hour >= 17) ||
+                day === 6 ||
+                day === 0 ||
+                day === 1 ||
+                day === 2 ||
+                (day === 3 && hour <= 16);
 
             if (inFridayWindow) {
                 const friday = new Date(d);
@@ -286,9 +273,9 @@
             }
 
             const inWednesdayWindow =
-                (day === 3 && hour >= 17) ||   // Wed 17–23
-                day === 4 ||                   // Thu
-                (day === 5 && hour <= 16);     // Fri 0–16
+                (day === 3 && hour >= 17) ||
+                day === 4 ||
+                (day === 5 && hour <= 16);
 
             if (inWednesdayWindow) {
                 const weds = new Date(d);
@@ -301,7 +288,44 @@
             return { anchor: d, window: 'none' };
         };
 
-        // Generic item (used for Major)
+        // MAJOR ANCHOR + WINDOW (same windows as Significant)
+        const getMajorAnchor = (changeDate) => {
+            const d = new Date(changeDate);
+            const day = d.getDay();    // 0=Sun..5=Fri..6=Sat[web:76]
+            const hour = d.getHours(); // 0..23[web:240]
+
+            const inFridayWindow =
+                (day === 5 && hour >= 17) ||
+                day === 6 ||
+                day === 0 ||
+                day === 1 ||
+                day === 2 ||
+                (day === 3 && hour <= 16);
+
+            if (inFridayWindow) {
+                const friday = new Date(d);
+                const diffToFriday = 5 - day;
+                friday.setDate(friday.getDate() + diffToFriday);
+                friday.setHours(17, 0, 0, 0);
+                return { anchor: friday, window: 'friday' };
+            }
+
+            const inWednesdayWindow =
+                (day === 3 && hour >= 17) ||
+                day === 4 ||
+                (day === 5 && hour <= 16);
+
+            if (inWednesdayWindow) {
+                const weds = new Date(d);
+                const diffToWeds = 3 - day;
+                weds.setDate(weds.getDate() + diffToWeds);
+                weds.setHours(17, 0, 0, 0);
+                return { anchor: weds, window: 'wednesday' };
+            }
+
+            return { anchor: d, window: 'none' };
+        };
+
         const generateDeadlineItem = (changeDate, businessDays, task) => {
             const deadline = calculateBackwardsDeadline(changeDate, businessDays);
             return `<p class="deadline-item">${task} (by ${deadline.toLocaleDateString()})</p>`;
@@ -346,7 +370,7 @@
             `;
         };
 
-        // SIGNIFICANT DEADLINES with window‑specific offsets
+        // SIGNIFICANT DEADLINES (two windows)
         const generateSignificantDeadlines = (changeDate) => {
             const { anchor, window } = getSignificantAnchor(changeDate);
 
@@ -362,7 +386,7 @@
                 cabDate        = calculateBackwardsDeadline(anchor, 2);
                 clientDate     = calculateBackwardsDeadline(anchor, 1);
             } else {
-                // Default (Fri 17h–Wed 16h and 'none'): 8/7/6/5/4/2/1
+                // Fri 17h–Wed 16h (and others): 8/7/6/5/4/2/1
                 ddrDate        = calculateBackwardsDeadline(anchor, 8);
                 maximoDate     = calculateBackwardsDeadline(anchor, 7);
                 validationDate = calculateBackwardsDeadline(anchor, 6);
@@ -435,25 +459,94 @@
             `;
         };
 
-        // MAJOR DEADLINES
-        const generateMajorDeadlines = (changeDate) => `
-            <h3>Deadlines for Major Change</h3>
-            ${generateDeadlineItem(changeDate, 13, 'DDR deposited, Risk Assessment, Service Now ticket')}
-            ${generateDeadlineItem(changeDate, 12, 'Maximo ticket to GDC (by 2pm), MOP (INPRG by 2pm)')}
-            ${generateDeadlineItem(changeDate, 11, 'Validation by GDC (by 2pm)')}
-            ${generateDeadlineItem(changeDate, 10, 'Service Now to HDC (by noon)')}
-            ${generateDeadlineItem(changeDate, 4, 'MOP done (by 2pm)')}
-            ${generateDeadlineItem(changeDate, 2, 'CAB Presentation (11am), MOP Validation')}
-            ${generateDeadlineItem(changeDate, 1, 'Client Presentation (9am), Executive Approval (2pm)')}
-            <h3>Délais pour un changement majeur</h3>
-            ${generateDeadlineItem(changeDate, 13, 'Dépôt de DDR, Risk Assessment complété, Billet Service Now')}
-            ${generateDeadlineItem(changeDate, 12, 'Billet Maximo soumis à la GDC Bell (avant 14 h), MOP (INPRG avant 14 h)')}
-            ${generateDeadlineItem(changeDate, 11, 'Validation à la GDC Bell (avant 14 h)')}
-            ${generateDeadlineItem(changeDate, 10, 'Service Now to HDC (avant 12 h)')}
-            ${generateDeadlineItem(changeDate, 4, 'MOP complété (avant 14 h)')}
-            ${generateDeadlineItem(changeDate, 2, 'Présentation au CAB (11 h), MOP Validation (avant 11 h)')}
-            ${generateDeadlineItem(changeDate, 1, 'Présentation au client (9 h), recevoir approbation des VP')}
-        `;
+        // MAJOR DEADLINES (two windows)
+        const generateMajorDeadlines = (changeDate) => {
+            const { anchor, window } = getMajorAnchor(changeDate);
+
+            let ddrDate, maximoDate, validationDate, snHdcDate, mopDoneDate, cabDate, clientDate;
+
+            if (window === 'wednesday') {
+                // Example extended pattern for Wed 17h–Fri 16h (adjust if you have exact rules)
+                ddrDate        = calculateBackwardsDeadline(anchor, 16);
+                maximoDate     = calculateBackwardsDeadline(anchor, 15);
+                validationDate = calculateBackwardsDeadline(anchor, 14);
+                snHdcDate      = calculateBackwardsDeadline(anchor, 13);
+                mopDoneDate    = calculateBackwardsDeadline(anchor, 7);
+                cabDate        = calculateBackwardsDeadline(anchor, 2);
+                clientDate     = calculateBackwardsDeadline(anchor, 1);
+            } else {
+                // Default Major pattern (Fri 17h–Wed 16h and others)
+                ddrDate        = calculateBackwardsDeadline(anchor, 13);
+                maximoDate     = calculateBackwardsDeadline(anchor, 12);
+                validationDate = calculateBackwardsDeadline(anchor, 11);
+                snHdcDate      = calculateBackwardsDeadline(anchor, 10);
+                mopDoneDate    = calculateBackwardsDeadline(anchor, 4);
+                cabDate        = calculateBackwardsDeadline(anchor, 2);
+                clientDate     = calculateBackwardsDeadline(anchor, 1);
+            }
+
+            return `
+                <h3>Deadlines for Major Change</h3>
+                <p class="deadline-item">
+                    DDR deposited, Risk Assessment, Service Now ticket
+                    (by ${ddrDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Maximo ticket to GDC (by 2pm), MOP (INPRG by 2pm)
+                    (by ${maximoDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Validation by GDC (by 2pm)
+                    (by ${validationDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Service Now to HDC (by noon)
+                    (by ${snHdcDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    MOP done (by 2pm)
+                    (by ${mopDoneDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    CAB Presentation (11am), MOP Validation
+                    (by ${cabDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Client Presentation (9am), Executive Approval (2pm)
+                    (by ${clientDate.toLocaleDateString()})
+                </p>
+
+                <h3>Délais pour un changement majeur</h3>
+                <p class="deadline-item">
+                    Dépôt de DDR, Risk Assessment complété, Billet Service Now
+                    (by ${ddrDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Billet Maximo soumis à la GDC Bell (avant 14 h), MOP (INPRG avant 14 h)
+                    (by ${maximoDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Validation à la GDC Bell (avant 14 h)
+                    (by ${validationDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Service Now to HDC (avant 12 h)
+                    (by ${snHdcDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    MOP complété (avant 14 h)
+                    (by ${mopDoneDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Présentation au CAB (11 h), MOP Validation
+                    (by ${cabDate.toLocaleDateString()})
+                </p>
+                <p class="deadline-item">
+                    Présentation au client (9 h), approbation des VP
+                    (by ${clientDate.toLocaleDateString()})
+                </p>
+            `;
+        };
 
         const generateDeadlines = (changeDate, changeType) => {
             if (changeType === 'Minor') return generateMinorDeadlines(changeDate);
@@ -483,6 +576,8 @@
                 calcChangeDate = getMinorAnchorDate(rawChangeDate);
             } else if (changeType === 'Significant') {
                 calcChangeDate = getSignificantAnchor(rawChangeDate).anchor;
+            } else if (changeType === 'Major') {
+                calcChangeDate = getMajorAnchor(rawChangeDate).anchor;
             }
 
             let submissionDays;
