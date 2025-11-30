@@ -255,7 +255,7 @@
         const getSignificantAnchor = (changeDate) => {
             const d = new Date(changeDate);
             const day = d.getDay();    // 0=Sun..5=Fri..6=Sat[web:76]
-            const hour = d.getHours(); // 0..23[web:240]
+            const hour = d.getHours(); // 0..23[web:113]
 
             const inFridayWindow =
                 (day === 5 && hour >= 17) ||
@@ -289,12 +289,15 @@
             return { anchor: d, window: 'none' };
         };
 
-        // MAJOR ANCHOR + WINDOW (same windows as Significant)
+        // MAJOR ANCHOR + WINDOW:
+        //  - 'friday': Fri 17–Wed 16 → Friday 17h
+        //  - 'wednesday': Wed 17–Fri 16 → Wednesday 17h
         const getMajorAnchor = (changeDate) => {
             const d = new Date(changeDate);
             const day = d.getDay();    // 0=Sun..5=Fri..6=Sat[web:76]
-            const hour = d.getHours(); // 0..23[web:240]
+            const hour = d.getHours(); // 0..23[web:113]
 
+            // Window A: Fri 17–23, Sat, Sun, Mon, Tue, Wed 0–16
             const inFridayWindow =
                 (day === 5 && hour >= 17) ||
                 day === 6 ||
@@ -305,12 +308,13 @@
 
             if (inFridayWindow) {
                 const friday = new Date(d);
-                const diffToFriday = 5 - day;
+                const diffToFriday = 5 - day;  // move to that week's Friday
                 friday.setDate(friday.getDate() + diffToFriday);
                 friday.setHours(17, 0, 0, 0);
                 return { anchor: friday, window: 'friday' };
             }
 
+            // Window B: Wed 17–23, Thu (all), Fri 0–16
             const inWednesdayWindow =
                 (day === 3 && hour >= 17) ||
                 day === 4 ||
@@ -318,12 +322,13 @@
 
             if (inWednesdayWindow) {
                 const weds = new Date(d);
-                const diffToWeds = 3 - day;
+                const diffToWeds = 3 - day;    // move to that week's Wednesday
                 weds.setDate(weds.getDate() + diffToWeds);
                 weds.setHours(17, 0, 0, 0);
                 return { anchor: weds, window: 'wednesday' };
             }
 
+            // Outside these windows: use actual datetime
             return { anchor: d, window: 'none' };
         };
 
@@ -387,7 +392,7 @@
                 cabDate        = calculateBackwardsDeadline(anchor, 2);
                 clientDate     = calculateBackwardsDeadline(anchor, 1);
             } else {
-                // Fri 17h–Wed 16h (and others): 8/7/6/5/4/2/1
+                // Fri 17h–Wed 16h (and 'none'): 8/7/6/5/4/2/1
                 ddrDate        = calculateBackwardsDeadline(anchor, 8);
                 maximoDate     = calculateBackwardsDeadline(anchor, 7);
                 validationDate = calculateBackwardsDeadline(anchor, 6);
@@ -460,14 +465,14 @@
             `;
         };
 
-        // MAJOR DEADLINES (two windows)
+        // MAJOR DEADLINES (two windows, aligned with getMajorAnchor)
         const generateMajorDeadlines = (changeDate) => {
             const { anchor, window } = getMajorAnchor(changeDate);
 
             let ddrDate, maximoDate, validationDate, snHdcDate, mopDoneDate, cabDate, clientDate;
 
             if (window === 'wednesday') {
-                // Example extended pattern for Wed 17h–Fri 16h (adjust if you have exact rules)
+                // Wed 17h–Fri 16h window – extended pattern (adjust offsets if needed)
                 ddrDate        = calculateBackwardsDeadline(anchor, 16);
                 maximoDate     = calculateBackwardsDeadline(anchor, 15);
                 validationDate = calculateBackwardsDeadline(anchor, 14);
@@ -476,7 +481,7 @@
                 cabDate        = calculateBackwardsDeadline(anchor, 2);
                 clientDate     = calculateBackwardsDeadline(anchor, 1);
             } else {
-                // Default Major pattern (Fri 17h–Wed 16h and others)
+                // Default Major pattern (Fri 17h–Wed 16h and 'none')
                 ddrDate        = calculateBackwardsDeadline(anchor, 13);
                 maximoDate     = calculateBackwardsDeadline(anchor, 12);
                 validationDate = calculateBackwardsDeadline(anchor, 11);
