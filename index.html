@@ -258,19 +258,17 @@
                 return anchor;
             }
 
-            // Outside all these windows, use actual change date/time
             return d;
         };
 
-        // SIGNIFICANT ANCHOR:
-        //  - Fri 17:00 – Wed 16:00  → Friday 17:00
-        //  - Wed 17:00 – Fri 16:00  → Wednesday 17:00
-        const getSignificantAnchorDate = (changeDate) => {
+        // SIGNIFICANT ANCHOR + WINDOW:
+        //  - Window 'friday': Fri 17:00 – Wed 16:00  → Friday 17:00
+        //  - Window 'wednesday': Wed 17:00 – Fri 16:00  → Wednesday 17:00
+        const getSignificantAnchor = (changeDate) => {
             const d = new Date(changeDate);
             const day = d.getDay();    // 0=Sun..5=Fri..6=Sat[web:76]
             const hour = d.getHours(); // 0..23[web:113]
 
-            // Window A: Fri 17:00–23:59, Sat, Sun, Mon (all), Tue (all), Wed 00:00–16:00
             const inFridayWindow =
                 (day === 5 && hour >= 17) ||   // Fri 17–23
                 day === 6 ||                   // Sat
@@ -281,13 +279,12 @@
 
             if (inFridayWindow) {
                 const friday = new Date(d);
-                const diffToFriday = 5 - day;  // move to that week's Friday
+                const diffToFriday = 5 - day;
                 friday.setDate(friday.getDate() + diffToFriday);
                 friday.setHours(17, 0, 0, 0);
-                return friday;
+                return { anchor: friday, window: 'friday' };
             }
 
-            // Window B: Wed 17:00–23:59, Thu (all), Fri 00:00–16:00 → Wednesday 17:00
             const inWednesdayWindow =
                 (day === 3 && hour >= 17) ||   // Wed 17–23
                 day === 4 ||                   // Thu
@@ -298,14 +295,13 @@
                 const diffToWeds = 3 - day;
                 weds.setDate(weds.getDate() + diffToWeds);
                 weds.setHours(17, 0, 0, 0);
-                return weds;
+                return { anchor: weds, window: 'wednesday' };
             }
 
-            // Any other time: use the actual change date/time
-            return d;
+            return { anchor: d, window: 'none' };
         };
 
-        // Generic item (used for Major only)
+        // Generic item (used for Major)
         const generateDeadlineItem = (changeDate, businessDays, task) => {
             const deadline = calculateBackwardsDeadline(changeDate, businessDays);
             return `<p class="deadline-item">${task} (by ${deadline.toLocaleDateString()})</p>`;
@@ -350,17 +346,31 @@
             `;
         };
 
-        // SIGNIFICANT DEADLINES from anchor
+        // SIGNIFICANT DEADLINES with window‑specific offsets
         const generateSignificantDeadlines = (changeDate) => {
-            const anchor = getSignificantAnchorDate(changeDate);
+            const { anchor, window } = getSignificantAnchor(changeDate);
 
-            const ddrDate        = calculateBackwardsDeadline(anchor, 8);
-            const maximoDate     = calculateBackwardsDeadline(anchor, 7);
-            const validationDate = calculateBackwardsDeadline(anchor, 6);
-            const snHdcDate      = calculateBackwardsDeadline(anchor, 5);
-            const mopDoneDate    = calculateBackwardsDeadline(anchor, 4);
-            const cabDate        = calculateBackwardsDeadline(anchor, 2);
-            const clientDate     = calculateBackwardsDeadline(anchor, 1);
+            let ddrDate, maximoDate, validationDate, snHdcDate, mopDoneDate, cabDate, clientDate;
+
+            if (window === 'wednesday') {
+                // Wed 17h–Fri 16h: 11/10/9/8/7/2/1
+                ddrDate        = calculateBackwardsDeadline(anchor, 11);
+                maximoDate     = calculateBackwardsDeadline(anchor, 10);
+                validationDate = calculateBackwardsDeadline(anchor, 9);
+                snHdcDate      = calculateBackwardsDeadline(anchor, 8);
+                mopDoneDate    = calculateBackwardsDeadline(anchor, 7);
+                cabDate        = calculateBackwardsDeadline(anchor, 2);
+                clientDate     = calculateBackwardsDeadline(anchor, 1);
+            } else {
+                // Default (Fri 17h–Wed 16h and 'none'): 8/7/6/5/4/2/1
+                ddrDate        = calculateBackwardsDeadline(anchor, 8);
+                maximoDate     = calculateBackwardsDeadline(anchor, 7);
+                validationDate = calculateBackwardsDeadline(anchor, 6);
+                snHdcDate      = calculateBackwardsDeadline(anchor, 5);
+                mopDoneDate    = calculateBackwardsDeadline(anchor, 4);
+                cabDate        = calculateBackwardsDeadline(anchor, 2);
+                clientDate     = calculateBackwardsDeadline(anchor, 1);
+            }
 
             return `
                 <h3>Deadlines for Significant Change</h3>
@@ -468,12 +478,11 @@
             const rawChangeDate = new Date(`${dateValue}T${timeValue}`);
             const userDateTime  = new Date(`${dateValue}T${timeValue}`);
 
-            // Apply anchors
             let calcChangeDate = rawChangeDate;
             if (changeType === 'Minor') {
                 calcChangeDate = getMinorAnchorDate(rawChangeDate);
             } else if (changeType === 'Significant') {
-                calcChangeDate = getSignificantAnchorDate(rawChangeDate);
+                calcChangeDate = getSignificantAnchor(rawChangeDate).anchor;
             }
 
             let submissionDays;
