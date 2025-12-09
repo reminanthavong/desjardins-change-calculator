@@ -420,44 +420,57 @@
         return d;
     };
 
-    // MINOR DEADLINES
-    const generateMinorDeadlines = (changeDate) => {
-        const anchor = getMinorAnchorDate(changeDate);
+// MINOR DEADLINES
+const generateMinorDeadlines = (changeDate) => {
+    const anchor = getMinorAnchorDate(changeDate);
 
-        const ddrDate        = calculateBackwardsDeadline(anchor, 5);
-        const maximoDate     = calculateBackwardsDeadline(anchor, 4);
-        const validationDate = calculateBackwardsDeadline(anchor, 3);
+    const ddrDate        = calculateBackwardsDeadline(anchor, 5);
+    const maximoDate     = calculateBackwardsDeadline(anchor, 4);
+    const validationDate = calculateBackwardsDeadline(anchor, 3);
 
-        return `
-            <h3>Deadlines for Minor Change</h3>
-            <p class="deadline-item">
-                DDR deposited, Risk Assessment completed, Service Now ticket
-                (${ddrDate.toLocaleDateString()})
-            </p>
-            <p class="deadline-item">
-                Maximo ticket to GDC and MOP (before 2pm)
-                (${maximoDate.toLocaleDateString()})
-            </p>
-            <p class="deadline-item">
-                Validation done by GDC Bell (before 2pm)
-                (${validationDate.toLocaleDateString()})
-            </p>
+    // Day of change = anchor date
+    const changeDay = new Date(anchor);
+    changeDay.setHours(16, 0, 0, 0);
 
-            <h3>Délais pour un changement mineur</h3>
-            <p class="deadline-item">
-                Dépôt de DDR, Risk Assessment complété, Billet Service Now
-                (avant le ${ddrDate.toLocaleDateString()})
-            </p>
-            <p class="deadline-item">
-                Billet Maximo soumis à la GDC Bell et MOP (avant 14 h)
-                (avant le ${maximoDate.toLocaleDateString()})
-            </p>
-            <p class="deadline-item">
-                Validation à la GDC Bell (avant 14 h)
-                (avant le ${validationDate.toLocaleDateString()})
-            </p>
-        `;
-    };
+    return `
+        <h3>Deadlines for Minor Change</h3>
+        <p class="deadline-item">
+            DDR deposited, Risk Assessment completed, Service Now ticket
+            (${ddrDate.toLocaleDateString()})
+        </p>
+        <p class="deadline-item">
+            Maximo ticket to GDC and MOP (before 2pm)
+            (${maximoDate.toLocaleDateString()})
+        </p>
+        <p class="deadline-item">
+            Validation done by GDC Bell (before 2pm)
+            (${validationDate.toLocaleDateString()})
+        </p>
+        <p class="deadline-item">
+            MOP Validation complete, CAB presentation (day of change)
+            (${changeDay.toLocaleDateString()})
+        </p>
+
+        <h3>Délais pour un changement mineur</h3>
+        <p class="deadline-item">
+            Dépôt de DDR, Risk Assessment complété, Billet Service Now
+            (avant le ${ddrDate.toLocaleDateString()})
+        </p>
+        <p class="deadline-item">
+            Billet Maximo soumis à la GDC Bell et MOP (avant 14 h)
+            (avant le ${maximoDate.toLocaleDateString()})
+        </p>
+        <p class="deadline-item">
+            Validation à la GDC Bell (avant 14 h)
+            (avant le ${validationDate.toLocaleDateString()})
+        </p>
+        <p class="deadline-item">
+            Validation du MOP complétée, présentation au CAB (jour du changement)
+            (${changeDay.toLocaleDateString()})
+        </p>
+    `;
+};
+
 
     // SIGNIFICANT DEADLINES
     const generateSignificantDeadlines = (changeDate) => {
