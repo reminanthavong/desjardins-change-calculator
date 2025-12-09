@@ -174,64 +174,98 @@
 
     const calculateForwardsDeadline = (startDate, businessDays) =>
         calculateBusinessDeadline(startDate, businessDays, 1);
+    
 
-    // MINOR ANCHOR
-    const getMinorAnchorDate = (changeDate) => {
-        const d = new Date(changeDate);
-        const day = d.getDay();
-        const hour = d.getHours();
-        const anchor = new Date(d);
+// MINOR ANCHOR (previous weekday 17:00 per window)
+//
+// Fri 17:00 – Mon 16:00  → previous Fri 17:00
+// Mon 17:00 – Tue 16:00  → previous Mon 17:00
+// Tue 17:00 – Wed 16:00  → previous Tue 17:00
+// Wed 17:00 – Thu 16:00  → previous Wed 17:00
+// Thu 17:00 – Fri 16:00  → previous Thu 17:00
+const getMinorAnchorDate = (changeDate) => {
+    const d   = new Date(changeDate);
+    const day = d.getDay();      // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat[web:76]
+    const hr  = d.getHours();
 
-        const setToWeekdayAt17 = (targetWeekday) => {
-            const diff = targetWeekday - day;
-            anchor.setDate(anchor.getDate() + diff);
-            anchor.setHours(17, 0, 0, 0);
-        };
+    const cloneYMD = (src) =>
+        new Date(src.getFullYear(), src.getMonth(), src.getDate());
 
-        if (
-            (day === 5 && hour >= 17) ||
-            day === 6 ||
-            day === 0 ||
-            (day === 1 && hour <= 16)
-        ) {
-            setToWeekdayAt17(5);
-            return anchor;
-        }
+    // Window 1: Fri 17:00 – Mon 16:00 → previous Friday 17:00
+    if (
+        (day === 5 && hr >= 17) ||   // Fri 17–23
+        day === 6 ||                 // Sat
+        day === 0 ||                 // Sun
+        (day === 1 && hr <= 16)      // Mon 0–16
+    ) {
+        const friday = cloneYMD(d);
+        // move back to previous Friday
+        // Fri: 0 days back; Sat: -1; Sun: -2; Mon: -3
+        const back =
+            day === 5 ? 0 :
+            day === 6 ? 1 :
+            day === 0 ? 2 :
+            /* day === 1 */ 3;
+        friday.setDate(friday.getDate() - back);
+        friday.setHours(17, 0, 0, 0);
+        return friday;
+    }
 
-        if (
-            (day === 1 && hour >= 17) ||
-            (day === 2 && hour <= 16)
-        ) {
-            setToWeekdayAt17(1);
-            return anchor;
-        }
+    // Window 2: Mon 17:00 – Tue 16:00 → previous Monday 17:00
+    if (
+        (day === 1 && hr >= 17) ||   // Mon 17–23
+        (day === 2 && hr <= 16)      // Tue 0–16
+    ) {
+        const monday = cloneYMD(d);
+        // Mon: 0 back; Tue: -1
+        const back = (day === 1 ? 0 : 1);
+        monday.setDate(monday.getDate() - back);
+        monday.setHours(17, 0, 0, 0);
+        return monday;
+    }
 
-        if (
-            (day === 2 && hour >= 17) ||
-            (day === 3 && hour <= 16)
-        ) {
-            setToWeekdayAt17(2);
-            return anchor;
-        }
+    // Window 3: Tue 17:00 – Wed 16:00 → previous Tuesday 17:00
+    if (
+        (day === 2 && hr >= 17) ||   // Tue 17–23
+        (day === 3 && hr <= 16)      // Wed 0–16
+    ) {
+        const tuesday = cloneYMD(d);
+        const back = (day === 2 ? 0 : 1); // Tue: 0; Wed: -1
+        tuesday.setDate(tuesday.getDate() - back);
+        tuesday.setHours(17, 0, 0, 0);
+        return tuesday;
+    }
 
-        if (
-            (day === 3 && hour >= 17) ||
-            (day === 4 && hour <= 16)
-        ) {
-            setToWeekdayAt17(3);
-            return anchor;
-        }
+    // Window 4: Wed 17:00 – Thu 16:00 → previous Wednesday 17:00
+    if (
+        (day === 3 && hr >= 17) ||   // Wed 17–23
+        (day === 4 && hr <= 16)      // Thu 0–16
+    ) {
+        const weds = cloneYMD(d);
+        const back = (day === 3 ? 0 : 1); // Wed: 0; Thu: -1
+        weds.setDate(weds.getDate() - back);
+        weds.setHours(17, 0, 0, 0);
+        return weds;
+    }
 
-        if (
-            (day === 4 && hour >= 17) ||
-            (day === 5 && hour <= 16)
-        ) {
-            setToWeekdayAt17(4);
-            return anchor;
-        }
+    // Window 5: Thu 17:00 – Fri 16:00 → previous Thursday 17:00
+    if (
+        (day === 4 && hr >= 17) ||   // Thu 17–23
+        (day === 5 && hr <= 16)      // Fri 0–16
+    ) {
+        const thurs = cloneYMD(d);
+        const back = (day === 4 ? 0 : 1); // Thu: 0; Fri: -1
+        thurs.setDate(thurs.getDate() - back);
+        thurs.setHours(17, 0, 0, 0);
+        return thurs;
+    }
 
-        return d;
-    };
+    // Fallback: selected day at 17:00 (should rarely hit)
+    const fallback = cloneYMD(d);
+    fallback.setHours(17, 0, 0, 0);
+    return fallback;
+};
+
 
     // SIGNIFICANT ANCHOR
     const getSignificantAnchor = (changeDate) => {
