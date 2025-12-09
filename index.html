@@ -267,43 +267,80 @@ const getMinorAnchorDate = (changeDate) => {
 };
 
 
-    // SIGNIFICANT ANCHOR
-    const getSignificantAnchor = (changeDate) => {
-        const d = new Date(changeDate);
-        const day = d.getDay();    // 0=Sun..5=Fri..6=Sat[web:76]
-        const hour = d.getHours(); // 0..23[web:113]
+   // SIGNIFICANT ANCHOR (two windows, always previous anchor)
+//
+// Window 1: Fri 17:00 – Wed 16:00  → previous Friday 17:00
+// Window 2: Wed 17:00 – Fri 16:00  → previous Wednesday 17:00
+const getSignificantAnchor = (changeDate) => {
+    const d   = new Date(changeDate);
+    const day = d.getDay();      // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat[web:76]
+    const hr  = d.getHours();
 
-        const inFridayWindow =
-            (day === 5 && hour >= 17) ||
-            day === 6 ||
-            day === 0 ||
-            day === 1 ||
-            day === 2 ||
-            (day === 3 && hour <= 16);
+    const cloneYMD = (src) =>
+        new Date(src.getFullYear(), src.getMonth(), src.getDate());
 
-        if (inFridayWindow) {
-            const friday = new Date(d);
-            const diffToFriday = 5 - day;
-            friday.setDate(friday.getDate() + diffToFriday);
-            friday.setHours(17, 0, 0, 0);
-            return { anchor: friday, window: 'friday' };
-        }
+    // Window 1: Fri 17 – Wed 16 → previous Friday 17:00
+    if (day === 5 && hr >= 17) {            // Fri 17–23 -> that Friday 17:00
+        const friday = cloneYMD(d);
+        friday.setHours(17, 0, 0, 0);
+        return { anchor: friday, window: 'friday' };
+    }
+    if (day === 6) {                        // Sat -> Fri -1
+        const friday = cloneYMD(d);
+        friday.setDate(friday.getDate() - 1);
+        friday.setHours(17, 0, 0, 0);
+        return { anchor: friday, window: 'friday' };
+    }
+    if (day === 0) {                        // Sun -> Fri -2
+        const friday = cloneYMD(d);
+        friday.setDate(friday.getDate() - 2);
+        friday.setHours(17, 0, 0, 0);
+        return { anchor: friday, window: 'friday' };
+    }
+    if (day === 1) {                        // Mon -> Fri -3
+        const friday = cloneYMD(d);
+        friday.setDate(friday.getDate() - 3);
+        friday.setHours(17, 0, 0, 0);
+        return { anchor: friday, window: 'friday' };
+    }
+    if (day === 2) {                        // Tue -> Fri -4
+        const friday = cloneYMD(d);
+        friday.setDate(friday.getDate() - 4);
+        friday.setHours(17, 0, 0, 0);
+        return { anchor: friday, window: 'friday' };
+    }
+    if (day === 3 && hr <= 16) {            // Wed 0–16 -> Fri -5
+        const friday = cloneYMD(d);
+        friday.setDate(friday.getDate() - 5);
+        friday.setHours(17, 0, 0, 0);
+        return { anchor: friday, window: 'friday' };
+    }
 
-        const inWednesdayWindow =
-            (day === 3 && hour >= 17) ||
-            day === 4 ||
-            (day === 5 && hour <= 16);
+    // Window 2: Wed 17 – Fri 16 → previous Wednesday 17:00
+    if (day === 3 && hr >= 17) {            // Wed 17–23 -> that Wednesday 17:00
+        const weds = cloneYMD(d);
+        weds.setHours(17, 0, 0, 0);
+        return { anchor: weds, window: 'wednesday' };
+    }
+    if (day === 4) {                        // Thu -> Wed -1
+        const weds = cloneYMD(d);
+        weds.setDate(weds.getDate() - 1);
+        weds.setHours(17, 0, 0, 0);
+        return { anchor: weds, window: 'wednesday' };
+    }
+    if (day === 5 && hr <= 16) {            // Fri 0–16 -> Wed -2
+        const weds = cloneYMD(d);
+        weds.setDate(weds.getDate() - 2);
+        weds.setHours(17, 0, 0, 0);
+        return { anchor: weds, window: 'wednesday' };
+    }
 
-        if (inWednesdayWindow) {
-            const weds = new Date(d);
-            const diffToWeds = 3 - day;
-            weds.setDate(weds.getDate() + diffToWeds);
-            weds.setHours(17, 0, 0, 0);
-            return { anchor: weds, window: 'wednesday' };
-        }
+    // Fallback (should rarely be used)
+    const fallback = cloneYMD(d);
+    fallback.setHours(17, 0, 0, 0);
+    return { anchor: fallback, window: 'none' };
+};
 
-        return { anchor: d, window: 'none' };
-    };
 
     // MAJOR ANCHOR
     const getMajorAnchor = (changeDate) => {
