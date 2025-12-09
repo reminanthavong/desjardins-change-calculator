@@ -145,48 +145,45 @@
 </footer>
 
 <script>
-// Holidays 2025–2026 as ISO dates
-const holidays = new Set([
-    '2026-01-01', '2026-02-16', '2026-04-17', '2026-05-18', '2026-06-24',
-    '2026-07-01', '2026-08-03', '2026-09-07', '2026-09-30',
-    '2026-10-12', '2026-11-11', '2026-12-25', '2026-12-26',
-    '2025-01-01', '2025-02-17', '2025-04-18', '2025-05-19', '2025-06-24',
-    '2025-07-01', '2025-08-04', '2025-09-01', '2025-09-30',
-    '2025-10-13', '2025-11-11', '2025-12-25', '2025-12-26'
-]);
+    // Holidays 2025–2026 as ISO dates
+    const holidays = new Set([
+        '2026-01-01', '2026-02-16', '2026-04-17', '2026-05-18', '2026-06-24',
+        '2026-07-01', '2026-08-03', '2026-09-07', '2026-09-30',
+        '2026-10-12', '2026-11-11', '2026-12-25', '2026-12-26',
+        '2025-01-01', '2025-02-17', '2025-04-18', '2025-05-19', '2025-06-24',
+        '2025-07-01', '2025-08-04', '2025-09-01', '2025-09-30',
+        '2025-10-13', '2025-11-11', '2025-12-25', '2025-12-26'
+    ]);
 
-const toISODate = (d) =>
-    d.getFullYear() + '-' +
-    String(d.getMonth() + 1).padStart(2, '0') + '-' +
-    String(d.getDate()).padStart(2, '0');
+    const toISODate = (d) =>
+        d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
 
-const isHoliday = date => holidays.has(toISODate(date));
-const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6[web:76]
-
-
+    const isHoliday = date => holidays.has(toISODate(date));
+    const isWeekend = date => [0, 6].includes(date.getDay()); // 0=Sun,6=Sat[web:342]
 
     // Business-day stepping – final date is always a business day
-const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
-    const date = new Date(startDate);
-    let remainingDays = businessDays;
+    const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
+        const date = new Date(startDate);
+        let remainingDays = businessDays;
 
-    // Count business days
-    while (remainingDays > 0) {
-        date.setDate(date.getDate() + direction);
-        if (!isWeekend(date) && !isHoliday(date)) {
-            remainingDays--;
+        // Count business days
+        while (remainingDays > 0) {
+            date.setDate(date.getDate() + direction);
+            if (!isWeekend(date) && !isHoliday(date)) {
+                remainingDays--;
+            }
         }
-    }
 
-    // Safety: never land on weekend or holiday
-    while (isWeekend(date) || isHoliday(date)) {
-        date.setDate(date.getDate() + direction);
-    }
+        // Safety: never land on weekend or holiday
+        while (isWeekend(date) || isHoliday(date)) {
+            date.setDate(date.getDate() + direction);
+        }
 
-    date.setHours(16, 0, 0, 0);
-    return date;
-};
-
+        date.setHours(16, 0, 0, 0);
+        return date;
+    };
 
     const calculateBackwardsDeadline = (startDate, businessDays) =>
         calculateBusinessDeadline(startDate, businessDays, -1);
@@ -203,7 +200,7 @@ const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
     // Thu 17:00 – Fri 16:00  → previous Thu 17:00
     const getMinorAnchorDate = (changeDate) => {
         const d   = new Date(changeDate);
-        const day = d.getDay();      // 0=Sun..6=Sat[web:76]
+        const day = d.getDay();
         const hr  = d.getHours();
 
         const cloneYMD = (src) =>
@@ -435,15 +432,15 @@ const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
             <h3>Deadlines for Minor Change</h3>
             <p class="deadline-item">
                 DDR deposited, Risk Assessment completed, Service Now ticket
-                (by ${ddrDate.toLocaleDateString()})
+                (${ddrDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Maximo ticket to GDC and MOP (before 2pm)
-                (by ${maximoDate.toLocaleDateString()})
+                (${maximoDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Validation done by GDC Bell (before 2pm)
-                (by ${validationDate.toLocaleDateString()})
+                (${validationDate.toLocaleDateString()})
             </p>
 
             <h3>Délais pour un changement mineur</h3>
@@ -490,68 +487,68 @@ const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
             <h3>Deadlines for Significant Change</h3>
             <p class="deadline-item">
                 DDR deposited, Risk Assessment completed, Service Now ticket
-                (by ${ddrDate.toLocaleDateString()})
+                (${ddrDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Maximo ticket to GDC (before 2pm), MOP (INPRG before 2pm)
-                (by ${maximoDate.toLocaleDateString()})
+                (${maximoDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Validation done by GDC (before 2pm)
-                (by ${validationDate.toLocaleDateString()})
+                (${validationDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Service Now to HDC (before noon)
-                (by ${snHdcDate.toLocaleDateString()})
+                (${snHdcDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 MOP done (before 2pm)
-                (by ${mopDoneDate.toLocaleDateString()})
+                (${mopDoneDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 CAB Presentation (11am), MOP Validation completed (before 11am)
-                (by ${cabDate.toLocaleDateString()})
+                (${cabDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Client Presentation (9am), eCAB Presentation, Receives VP Approval
-                (by ${clientDate.toLocaleDateString()})
+                (${clientDate.toLocaleDateString()})
             </p>
 
             <h3>Délais pour un changement significatif</h3>
             <p class="deadline-item">
                 Dépôt de DDR, Risk Assessment complété, Billet Service Now
-                (by ${ddrDate.toLocaleDateString()})
+                (${ddrDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Billet Maximo soumis à la GDC Bell (avant 14 h), MOP (INPRG avant 14 h)
-                (by ${maximoDate.toLocaleDateString()})
+                (${maximoDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Validation à la GDC Bell (avant 14 h)
-                (by ${validationDate.toLocaleDateString()})
+                (${validationDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Service Now to HDC (avant 12 h)
-                (by ${snHdcDate.toLocaleDateString()})
+                (${snHdcDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 MOP complété (avant 14 h)
-                (by ${mopDoneDate.toLocaleDateString()})
+                (${mopDoneDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Présentation au CAB (11 h), MOP Validation (avant 11 h)
-                (by ${cabDate.toLocaleDateString()})
+                (${cabDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Présentation au client (9 h), Présentation au eCAB, recevoir approbation des VP
-                (by ${clientDate.toLocaleDateString()})
+                (${clientDate.toLocaleDateString()})
             </p>
         `;
     };
 
     // MAJOR DEADLINES – anchor is already getMajorAnchor(...)
     const generateMajorDeadlines = (anchor) => {
-        const day  = anchor.getDay();   // 3 = Wed, 5 = Fri[web:76]
+        const day  = anchor.getDay();
         const hour = anchor.getHours();
 
         const isFridayAnchor    = (day === 5 && hour === 17);
@@ -583,61 +580,61 @@ const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
             <h3>Deadlines for Major Change</h3>
             <p class="deadline-item">
                 DDR deposited, Risk Assessment, Service Now ticket
-                (by ${ddrDate.toLocaleDateString()})
+                (${ddrDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Maximo ticket to GDC (by 2pm), MOP (INPRG by 2pm)
-                (by ${maximoDate.toLocaleDateString()})
+                (${maximoDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 First eCAB presentation, Validation by GDC (by 2pm)
-                (by ${validationDate.toLocaleDateString()})
+                (${validationDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Service Now to HDC (by noon)
-                (by ${snHdcDate.toLocaleDateString()})
+                (${snHdcDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 MOP done (by 2pm)
-                (by ${mopDoneDate.toLocaleDateString()})
+                (${mopDoneDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 CAB Presentation (11am), MOP Validation
-                (by ${cabDate.toLocaleDateString()})
+                (${cabDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Client Presentation (9am), Second eCAB Executive Approval (2pm)
-                (by ${clientDate.toLocaleDateString()})
+                (${clientDate.toLocaleDateString()})
             </p>
 
             <h3>Délais pour un changement majeur</h3>
             <p class="deadline-item">
                 Dépôt de DDR, Risk Assessment complété, Billet Service Now
-                (by ${ddrDate.toLocaleDateString()})
+                (${ddrDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Billet Maximo soumis à la GDC Bell (avant 14 h), MOP (INPRG avant 14 h)
-                (by ${maximoDate.toLocaleDateString()})
+                (${maximoDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 1ere présentation eCAB, Validation à la GDC Bell (avant 14 h)
-                (by ${validationDate.toLocaleDateString()})
+                (${validationDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Service Now to HDC (avant 12 h)
-                (by ${snHdcDate.toLocaleDateString()})
+                (${snHdcDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 MOP complété (avant 14 h)
-                (by ${mopDoneDate.toLocaleDateString()})
+                (${mopDoneDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Présentation au CAB (11 h), MOP Validation
-                (by ${cabDate.toLocaleDateString()})
+                (${cabDate.toLocaleDateString()})
             </p>
             <p class="deadline-item">
                 Présentation au client (9 h), 2e présentation eCAB + approbation des VP
-                (by ${clientDate.toLocaleDateString()})
+                (${clientDate.toLocaleDateString()})
             </p>
         `;
     };
