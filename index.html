@@ -145,62 +145,48 @@
 </footer>
 
 <script>
-    // Holidays 2025–2026
-    const holidays = [
-        '2026-01-01', '2026-02-16', '2026-04-17', '2026-05-18', '2026-06-24',
-        '2026-07-01', '2026-08-03', '2026-09-07', '2026-09-30',
-        '2026-10-12', '2026-11-11', '2026-12-25', '2026-12-26',
-        '2025-01-01', '2025-02-17', '2025-04-18', '2025-05-19', '2025-06-24',
-        '2025-07-01', '2025-08-04', '2025-09-01', '2025-09-30',
-        '2025-10-13', '2025-11-11', '2025-12-25', '2025-12-26'
-    ].map(date => new Date(date).toDateString());
+// Holidays 2025–2026 as ISO dates
+const holidays = new Set([
+    '2026-01-01', '2026-02-16', '2026-04-17', '2026-05-18', '2026-06-24',
+    '2026-07-01', '2026-08-03', '2026-09-07', '2026-09-30',
+    '2026-10-12', '2026-11-11', '2026-12-25', '2026-12-26',
+    '2025-01-01', '2025-02-17', '2025-04-18', '2025-05-19', '2025-06-24',
+    '2025-07-01', '2025-08-04', '2025-09-01', '2025-09-30',
+    '2025-10-13', '2025-11-11', '2025-12-25', '2025-12-26'
+]);
 
-    const isHoliday = date => holidays.includes(date.toDateString());
-    const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6[web:76]
-// TEMP DEBUG
-(function () {
-    const testDate = new Date('2026-01-01T00:00:00');
-    const msg = '2026-01-01 -> ' +
-        testDate.toDateString() +
-        ' | isHoliday=' + isHoliday(testDate) +
-        ' | isWeekend=' + isWeekend(testDate);
-    alert(msg);
-})();
+const toISODate = (d) =>
+    d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
 
-    console.log(
-  'Is 2026-01-01 holiday?',
-  isHoliday(new Date('2026-01-01')),
-  new Date('2026-01-01').toDateString()
-);
+const isHoliday = date => holidays.has(toISODate(date));
+const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6[web:76]
+
 
 
     // Business-day stepping – final date is always a business day
-    const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
-        const date = new Date(startDate);
-        let remainingDays = businessDays;
+const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
+    const date = new Date(startDate);
+    let remainingDays = businessDays;
 
-        // Count business days
-        while (remainingDays > 0) {
-            date.setDate(date.getDate() + direction);
-            if (!isWeekend(date) && !isHoliday(date)) {
-                remainingDays--;
-            }
+    // Count business days
+    while (remainingDays > 0) {
+        date.setDate(date.getDate() + direction);
+        if (!isWeekend(date) && !isHoliday(date)) {
+            remainingDays--;
         }
+    }
 
-        // Debug:
-console.log('After counting:', date.toDateString(), 'isHoliday?', isHoliday(date), 'isWeekend?', isWeekend(date));
+    // Safety: never land on weekend or holiday
+    while (isWeekend(date) || isHoliday(date)) {
+        date.setDate(date.getDate() + direction);
+    }
 
-        // Safety: never land on weekend or holiday
-        while (isWeekend(date) || isHoliday(date)) {
-            date.setDate(date.getDate() + direction);
-        }
+    date.setHours(16, 0, 0, 0);
+    return date;
+};
 
-        // Debug:
-console.log('Final business deadline:', date.toDateString());
-
-        date.setHours(16, 0, 0, 0);
-        return date;
-    };
 
     const calculateBackwardsDeadline = (startDate, businessDays) =>
         calculateBusinessDeadline(startDate, businessDays, -1);
