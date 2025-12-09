@@ -158,6 +158,13 @@
     const isHoliday = date => holidays.includes(date.toDateString());
     const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6[web:76]
 
+    console.log(
+  'Is 2026-01-01 holiday?',
+  isHoliday(new Date('2026-01-01')),
+  new Date('2026-01-01').toDateString()
+);
+
+
     // Business-day stepping – final date is always a business day
     const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
         const date = new Date(startDate);
@@ -171,10 +178,16 @@
             }
         }
 
+        // Debug:
+console.log('After counting:', date.toDateString(), 'isHoliday?', isHoliday(date), 'isWeekend?', isWeekend(date));
+
         // Safety: never land on weekend or holiday
         while (isWeekend(date) || isHoliday(date)) {
             date.setDate(date.getDate() + direction);
         }
+
+        // Debug:
+console.log('Final business deadline:', date.toDateString());
 
         date.setHours(16, 0, 0, 0);
         return date;
