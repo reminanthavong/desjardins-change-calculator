@@ -157,6 +157,15 @@
 
     const isHoliday = date => holidays.includes(date.toDateString());
     const isWeekend = date => [0, 6].includes(date.getDay()); // Sun=0, Sat=6[web:76]
+// TEMP DEBUG
+(function () {
+    const testDate = new Date('2026-01-01T00:00:00');
+    const msg = '2026-01-01 -> ' +
+        testDate.toDateString() +
+        ' | isHoliday=' + isHoliday(testDate) +
+        ' | isWeekend=' + isWeekend(testDate);
+    alert(msg);
+})();
 
     console.log(
   'Is 2026-01-01 holiday?',
