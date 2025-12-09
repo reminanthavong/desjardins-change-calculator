@@ -160,25 +160,25 @@
 
     // Business-day stepping that never returns weekend/holiday
     const calculateBusinessDeadline = (startDate, businessDays, direction = -1) => {
-        const date = new Date(startDate);
-        let remainingDays = businessDays;
+    const date = new Date(startDate);
+    let remainingDays = businessDays;
 
-        // Step day by day, only counting business days
-        while (remainingDays > 0) {
-            date.setDate(date.getDate() + direction);
-            if (!isWeekend(date) && !isHoliday(date)) {
-                remainingDays--;
-            }
+    while (remainingDays > 0) {
+        date.setDate(date.getDate() + direction);
+        if (!isWeekend(date) && !isHoliday(date)) {
+            remainingDays--;
         }
+    }
 
-        // Safety: ensure final date is not weekend/holiday
-        while (isWeekend(date) || isHoliday(date)) {
-            date.setDate(date.getDate() + direction);
-        }
+    // If, for any reason, we land on a weekend/holiday, keep moving
+    while (isWeekend(date) || isHoliday(date)) {
+        date.setDate(date.getDate() + direction);
+    }
 
-        date.setHours(16, 0, 0, 0);
-        return date;
-    };
+    date.setHours(16, 0, 0, 0);
+    return date;
+};
+
 
     const calculateBackwardsDeadline = (startDate, businessDays) =>
         calculateBusinessDeadline(startDate, businessDays, -1);
